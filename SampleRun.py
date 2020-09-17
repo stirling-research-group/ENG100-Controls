@@ -13,7 +13,7 @@ motor.B_s = 0.02 #0.1 #0.002 # Nm Coefficient of static friction
 motor.J_m = 0.00051 # kg*m^2 Rotor Moment of Inertia
 
 
-M_a = .25	# kg
+M_a = .25    # kg
 L_a = .01 # m
 # updates the arms moment of inertia based on the length and mass provided.  The value itself can be read using motor.M_a and motor.L_a
 motor.update_arm_mass(M_a) # updates the arm moment of inertia based on M_a and L_a
@@ -35,9 +35,9 @@ start_time = time.monotonic()
 
 # this is just an example you can leave it running until it restarts plotting the most recent returned value.
 while time.monotonic() - start_time < 10 :
-	model_time.append(time.monotonic() - start_time)
-	angle.append(open_loop.step_control())
-	time.sleep(.04) # this simulates waiting to update the graphs so we aren't drawing too fast which can slow the system.
+    model_time.append(time.monotonic() - start_time)
+    angle.append(open_loop.step_control())
+    time.sleep(.04) # this simulates waiting to update the graphs so we aren't drawing too fast which can slow the system.
 
 angle_deg = [x*180/np.pi for x in angle]
 plt.figure(1)
@@ -48,7 +48,7 @@ plt.ylabel('Angle (deg)')
 print('Finished open loop example')
 
 # =========================================
-# example ClosedLoopControl	
+# example ClosedLoopControl    
 
 print('Starting closed loop example')
 motor.reset()
@@ -63,9 +63,9 @@ angle = []
 model_time = []
 # this is just an example you can leave it running until it restarts plotting the most recent returned value.
 while time.monotonic() - start_time < 3 :
-	model_time.append(time.monotonic() - start_time)
-	angle.append(closed_loop.step_control())
-	time.sleep(.02) # this simulates waiting to update the graphs so we aren't drawing too fast which can slow the system. Looks like the other overhead is about .02 s as well so this should update around 25 Hz.
+    model_time.append(time.monotonic() - start_time)
+    angle.append(closed_loop.step_control())
+    time.sleep(.02) # this simulates waiting to update the graphs so we aren't drawing too fast which can slow the system. Looks like the other overhead is about .02 s as well so this should update around 25 Hz.
 
 angle_deg = np.rad2deg(angle) # [x*180/np.pi for x in angle]
 plt.figure(2)
