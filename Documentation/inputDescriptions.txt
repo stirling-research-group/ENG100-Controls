@@ -1,0 +1,20 @@
+Mass : This is the mass of the arm.  The mass is modeled to be evenly distributed along the length of the arm.
+Length : This is the length of the arm.  The arm has one end on the axis of rotation (center) of the motor shaft.
+Desired angle : The angle the arm is trying to reach in degrees.  This is only used in closed loop control.
+
+Gravity : When gravity is on the arm affected by gravity, meaning it will move to hang down if now current is applied, it may not hang straight down as there is friction in the model.  When gravity is off, the arm is not affected by gravity, this is like the arm is rotating in the horizontal plane.
+
+Open : This controls the system with an open loop control where a specified current is applied for a specified time.
+Current CMD : The current command is the amount of electrical current applied to the motor.  This is proportional to the torque (how hard the system pushes).
+Time : The time is how long the current command (above) is applied.  After this time runs out zero current will be applied.
+
+Closed : This controls the system using a PID controller. In this the system modifies the applied current to try to maintain the desired angle.
+P : This is the proportional gain. This gain is multiplied by the difference between the desired position and the present position to generate the proportional term.  This term is added to the integral term and derivative term to generate the torque command.
+I : This is the integral gain.  This gain is multiplied by time since the last measurement and the difference between the desired position and the present position.  This value is added to a running total to generate the integral term. This term is added to the proportional term and derivative term to generate the torque command.
+D : This is the derivative gain.  This gain is multiplied by the difference between the desired position and the present position and divided by the time since the last measurement, this generates the derivative term. This term is added to the proportional term and integral term to generate the torque command.
+Reset I : The integral term is composed of a running total of values.  If there are continuous errors this value can build up a large value.  The reset I button clears the running total by setting it back to zero.
+
+Ki : This is the motor's torque constant.  The motor torque equals the torque constant multiplied by the current.
+Bs : This is the static friction coefficient that is always present.  It resists the motor from rotating and must be overcome for the motor to spin.
+Bv : This is the viscous friction coefficient.  This is multiplied by the rotational velocity to create another friction term that resists rotation.  The faster the motor spins the more friction there is, this keeps the motor from continuing to increase speed forever.
+Jm : This is the rotational inertia of the motor.  The larger this is the more torque it takes to change the motion of the motor, harder to speed up and harder to slow down.
