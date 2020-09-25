@@ -1,25 +1,24 @@
-import tkinter
-from tkinter import ttk
+from ControlsGuiModel import SystemModel, OpenLoopControl, ClosedLoopControl
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.collections import PatchCollection
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import threading
 import time
-from ControlsGuiModel import SystemModel, OpenLoopControl, ClosedLoopControl
+import tkinter
+from tkinter import ttk
 
 inputs = ['Mass (kg):', 'Length (m):', 'Desired Angle:',
-                         'Ki:', 'Bs:', 'Bv:', 'Jm:',
-                         'Current CMD (A):', 'Time (s):',
-                         'P:', 'I:', 'D:']
+          'Ki:', 'Bs:', 'Bv:', 'Jm:',
+          'Current CMD (A):', 'Time (s):',
+          'P:', 'I:', 'D:']
 defaultVals = {'Input': inputs,
-               'Default': [0.25, 0.01, 45,
-                           .136, 0.003, 0.020, 0.00051,
+               'Default': [0.25, 0.010, 45,
+                           0.136, 0.003, 0.020, 0.00051,
                            0.30, 5.00,
                            0.50, 0.05, 0.01],
-               'Max': [999.00, 999.00, 720,
+               'Max': [999.00, 999.000, 720,
                        999.00, 999.00, 999.00, 999.00,
                        120.00, 50.00,
                        999.00, 999.00, 999.00],
@@ -27,7 +26,7 @@ defaultVals = {'Input': inputs,
                        0, 0, 0, 0,
                        0.00, -50.00,
                        0.00, 0.00, 0.00],
-               'Format': ['%.2f', '%.2f', '%.0f',
+               'Format': ['%.2f', '%.3f', '%.0f',
                           '%.3f', '%.4f', '%.3f', '%.5f',
                           '%.2f', '%.2f',
                           '%.2f', '%.3f', '%.3f'],
@@ -38,20 +37,23 @@ defaultVals = {'Input': inputs,
                'Spinbox' : [0,0,0,0,0,0,0,0,0,0,0,0]}
 
 defaultDf = pd.DataFrame(defaultVals)
+helpDf = pd.read_csv('Documentation/inputDescriptions.txt', sep=" : ",
+                     header=None, names=['Label', 'Text'], engine='python')
 
 class App(tkinter.Frame):
     def __init__(self, master=None):
        super().__init__(master)
        self.gravityVar = tkinter.IntVar()
        self.loopVar = tkinter.StringVar()
-       self.option_add('*Font', 'Arial 12')
-       self.option_add('*Button.Font', 'Arial 12 bold')
+       self.option_add('*Font', 'Arial 10')
+       self.option_add('*Button.Font', 'Arial 10 bold')
        self.option_add('*Button.Foreground', '#FFF')
+       self.option_add('*Spinbox.*Button.background', '#000000')
        # create master grid
        self.master = master
        self.master.grid_columnconfigure(0, weight=1)
        self.master.grid_columnconfigure(1, weight=1)
-       self.master.grid_columnconfigure(2, weight=1)
+       # self.master.grid_columnconfigure(2, weight=1)
        for i in range(30):
            self.master.grid_rowconfigure(i, weight=1)
        self.grid(row=0, column=0, sticky='nsew')
@@ -60,15 +62,17 @@ class App(tkinter.Frame):
        self.grid_columnconfigure(1, weight=1)
        self.grid_rowconfigure(1, weight=1)
        # title window
-       self.master.title('ENG100')
+       self.master.title('ENG100 Controls')
        # create widgets and frames
        self.InitWidgets()
        # init model
-       self.runCommand = False
+       self.openRun = False
+       self.closedRun = False
        self.motor, self.open_loop, self.closed_loop = self.InitModel()
        self.SetMotorValues()
        self.openLoopAnimation, self.closedLoopAnimation = self.InitAnimations()
-       Window.MinimizeWindow(self.master)
+       # time.sleep(0.1)
+       # Window.MinimizeWindow(self.master)
        
     def InitAnimations(self):
         """
@@ -100,34 +104,59 @@ class App(tkinter.Frame):
         self.motorArm = self.PlotMotorArm()
         self.scrollPlotFigure, self.scrollPlotCanvas = self.CreatePlot(15,0,15)
         self.MotorArmTabs()
-        self.GravityButtons()
+        self.gravityButton = self.GravityButtons()
         self.controlTabs = self.ControlOptions()
         self.runButton = self.StartStopButton()
         resetFrame = self.ResetButtonFrame()
-        self.restartSimButton = self.RestartSimulationButton(resetFrame)
+        # self.restartSimButton = self.RestartSimulationButton(resetFrame)
         self.resetDefaultsButton = self.ResetDefaultsButton(resetFrame)
-    
-    def SetMotorValues(self):
-        """
-        Resets motor and retrieves user's inputs for motor values
-        """
-        self.motor.reset()
-        # motor properties can be changed by modifying the value or can be read for a display.
-        kiInput, bsInput, bvInput, jmInput = self.ReturnMotorProperties()
-        self.motor.K_t = kiInput # Nm Torque constant
-        self.motor.B_v = bsInput #0.05 #0.0003 # Nm/(deg/s) Coefficient of viscous friction
-        self.motor.B_s = bvInput #0.1 #0.002 # Nm Coefficient of static friction
-        self.motor.J_m = jmInput # kg*m^2 Rotor Moment of Inertia
         
+    def SetArmProperties(self):
+        """
+        Sets the arm properties based on the user inputs
+        """
         massInput, lengthInput, angleInput = self.ReturnMLAControls()
         M_a = massInput	# kg
         L_a = lengthInput # m
         # updates the arms moment of inertia based on the length and mass provided.  The value itself can be read using motor.M_a and motor.L_a
         self.motor.update_arm_mass(M_a) # updates the arm moment of inertia based on M_a and L_a
         self.motor.update_arm_length(L_a) # updates the arm moment of inertia based on M_a and L_a
-        
+        self.closed_loop.angle_ref = np.deg2rad(angleInput)
+    
+    def SetGravityProperties(self):
         gravitySetting = self.gravityVar.get()
         self.motor.use_grav = gravitySetting  # 0 for no gravity 1 for with gravity
+        return self.motor.use_grav
+        
+    def SetMotorProperties(self):
+        """
+        Sets the motor properties based on the user inputs
+        """
+        # motor properties can be changed by modifying the value or can be read for a display.
+        kiInput, bsInput, bvInput, jmInput = self.ReturnMotorProperties()
+        self.motor.K_t = kiInput # Nm Torque constant
+        self.motor.B_v = bsInput #0.05 #0.0003 # Nm/(deg/s) Coefficient of viscous friction
+        self.motor.B_s = bvInput #0.1 #0.002 # Nm Coefficient of static friction
+        self.motor.J_m = jmInput # kg*m^2 Rotor Moment of Inertia
+    
+    def SetMotorValues(self):
+        """
+        Resets motor and retrieves user's inputs for motor, arm, and open
+        loop properties
+        """
+        self.motor.reset()
+        self.SetMotorProperties()
+        self.SetArmProperties()
+        self.SetGravityProperties()
+        self.SetOpenLoopProperties()
+        
+    def SetOpenLoopProperties(self):
+        """
+        Sets the current cmd and time to run for the open loop plotting
+        """
+        cmdAInput, timeInput = self.ReturnCommandControls()
+        self.open_loop.time_to_run = timeInput # seconds
+        self.open_loop.current_cmd = cmdAInput # Amps
     
     def CreatePlot(self, row, column, rowSpanCount):
         """
@@ -145,19 +174,30 @@ class App(tkinter.Frame):
         canvas = FigureCanvasTkAgg(figure, master=frame)
         canvas.draw()
         canvas.get_tk_widget().grid(row=0, column=0, sticky='nsew')
+        canvas.get_tk_widget().grid_rowconfigure(0, weight=1)
+        canvas.get_tk_widget().grid_columnconfigure(0, weight=1)
         return figure, canvas
     
     def MotorArmTabs(self):
         frame = tkinter.LabelFrame(master=self, text='Motor Arm:', relief='ridge')
-        frame.grid(row=0, column=1, columnspan=1, rowspan=1, sticky='nsew')
+        frame.grid(row=0, column=1, columnspan=1, sticky='nsew')
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_rowconfigure(1, weight=1)
+        # self.CreateToolTip(frame, 'Motor Arm')
         motorArmTabs = ttk.Notebook(frame, padding=0)
         armTab = self.CreateTab(motorArmTabs)
         motorTab = self.CreateTab(motorArmTabs)
         motorArmTabs.add(armTab, text='Arm Properties')
         motorArmTabs.add(motorTab, text='Motor Properties')
         motorArmTabs.grid()
+        motorArmTabs.grid_rowconfigure(0, weight=1)
+        motorArmTabs.grid_rowconfigure(1, weight=1)
+        motorArmTabs.grid_rowconfigure(2, weight=1)
+        motorArmTabs.grid_rowconfigure(3, weight=1)
+        motorArmTabs.grid_columnconfigure(0, weight=1)
+        motorArmTabs.grid_columnconfigure(1, weight=1)
         self.MLAControls(armTab)
         self.MotorProperties(motorTab)
         
@@ -170,7 +210,8 @@ class App(tkinter.Frame):
         armTab.grid_columnconfigure(1, weight=1)
         for i, label in enumerate(labels):
             armTab.grid_rowconfigure(i, weight=1)
-            self.AddSpinboxGrid(i, label, armTab)
+            spinbox = self.AddSpinboxGrid(i, label, armTab)
+            spinbox.config(command=self.SetArmProperties)
             
     def MotorProperties(self, motorTab):
         """
@@ -181,7 +222,8 @@ class App(tkinter.Frame):
         motorTab.grid_columnconfigure(1, weight=1)
         for i, label in enumerate(propertyLabels):
             motorTab.grid_rowconfigure(i, weight=1)
-            self.AddSpinboxGrid(i, label, motorTab)
+            spinbox = self.AddSpinboxGrid(i, label, motorTab)
+            spinbox.config(command=self.SetMotorProperties)
             
     def GravityButtons(self):
         frame = tkinter.LabelFrame(master=self, text='Gravity:', relief='ridge')
@@ -199,12 +241,14 @@ class App(tkinter.Frame):
         onButton.grid(row=0, column=0, sticky='nsew')
         offButton.grid(row=0, column=1, sticky='nsew')
         onButton.invoke()
+        return onButton
         
     def ControlOptions(self):
         frame = tkinter.LabelFrame(master=self, text='Control:', relief='ridge')
         frame.grid(row=15, column=1, columnspan=2, rowspan=5, sticky='nsew')
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(0, weight=1)
+        # self.CreateToolTip(frame, 'Control')
         controlTabs = ttk.Notebook(frame, padding=(20, 10, 20, 10))
         openTab = self.CreateTab(controlTabs)
         closedTab = self.CreateTab(controlTabs)
@@ -224,7 +268,8 @@ class App(tkinter.Frame):
         cmdFrame.grid_columnconfigure(1, weight=1)
         for i, label in enumerate(labels):
             cmdFrame.grid_rowconfigure(i, weight=1)
-            self.AddSpinboxGrid(i, label, cmdFrame)
+            spinbox = self.AddSpinboxGrid(i, label, cmdFrame)
+            spinbox.config(command=self.SetOpenLoopProperties)
         return cmdFrame
     
     def PIDControls(self, pidFrame):
@@ -234,9 +279,15 @@ class App(tkinter.Frame):
         labels = ['P:', 'I:', 'D:']
         for i, label in enumerate(labels):
             self.AddSpinboxGrid(i, label, pidFrame)
-        resetButton = tkinter.Button(pidFrame, text='Reset I',
-                                     bg='#0288D1', command=self.ResetI)
-        resetButton.grid(row=1, column=2, sticky='nsew')
+            buttonLabel = 'Reset ' + label.replace(':', '')
+            if i != 1:
+                reset = tkinter.Button(pidFrame, text=buttonLabel, bg='#0288D1',
+                                command=lambda x=label: self.ResetSpinbox(x))
+            else:
+                reset = tkinter.Button(pidFrame, text=buttonLabel, bg='#0288D1',
+                                command=self.ResetI)
+                self.CreateToolTip(reset, buttonLabel)
+            reset.grid(row=i, column=2, sticky='nsew')
         return pidFrame
     
     def ResetButtonFrame(self):
@@ -267,7 +318,7 @@ class App(tkinter.Frame):
                                              text='Reset to Default Values',
                                              bg='#0288D1',
                                              command=self.ResetDefaults)
-        resetDefaultsButton.grid(row=0, column=1, padx=5, sticky='nsew')
+        resetDefaultsButton.grid(row=0, column=1, sticky='nsew')
         return resetDefaultsButton
     
     def StartStopButton(self):
@@ -279,7 +330,7 @@ class App(tkinter.Frame):
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(0, weight=1)
         runButton = tkinter.Button(frame, text='Start', bg='#009688', command=self.ActivateButton)
-        runButton.grid(row=0, column=0, columnspan=2, pady=10, sticky='nsew')
+        runButton.grid(row=0, column=0, sticky='nsew')
         return runButton
     
     def AddSpinboxGrid(self, i, label, frame):
@@ -295,6 +346,7 @@ class App(tkinter.Frame):
         spinbox.insert(0, defaultVal)
         spinbox.config(increment=stepVal, format=formatVal, takefocus=False)
         defaultDf.loc[defaultDf['Input'] == label, 'Spinbox'] = spinbox
+        return spinbox
     
     def CreateSpinboxGrid(self, rowNum, colNum, frame, label, fromNum, toNum):
         """
@@ -307,6 +359,7 @@ class App(tkinter.Frame):
         spinbox.grid(row=rowNum, column=colNum+1, padx=5, pady=5, sticky='nsew')
         spinbox.grid_rowconfigure(rowNum, weight=1)
         spinbox.grid_columnconfigure(colNum, weight=1)
+        self.CreateToolTip(spinboxLabel, label)
         return spinbox
         
     def CreateFrame(self, rowNum, colNum, stickyValue):
@@ -330,6 +383,20 @@ class App(tkinter.Frame):
         tab.grid_rowconfigure(1, weight=1)
         tab.grid_rowconfigure(2, weight=1)
         return tab
+    
+    def CreateToolTip(self, widget, label):
+        """
+        Adds a tooltip hover event to the given widget based on the label
+        """
+        toolTip = ToolTip(widget)
+        formattedLabel = (label.replace(':', '')).split(' (')[0]
+        text = helpDf.loc[helpDf['Label'] == formattedLabel, 'Text'].iloc[0]
+        def enter(event):
+            toolTip.showtip(text)
+        def leave(event):
+            toolTip.hidetip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
     
     def ReturnControlType(self):
         """
@@ -386,15 +453,24 @@ class App(tkinter.Frame):
     
     def ResetI(self):
         defaultI = 0.050
-        ClosedLoopControl.reset_int(self)
+        self.closed_loop.reset_int()
         iSpinbox = defaultDf.loc[defaultDf['Input'] == 'I:', 'Spinbox'].iloc[0]
         iSpinbox.delete(0, 'end')
         iSpinbox.insert(0, defaultI)
+        
+    def ResetSpinbox(self, inputType):
+        print(inputType)
+        spinbox = defaultDf.loc[defaultDf['Input'] == inputType, 'Spinbox'].iloc[0]
+        defaultVal = defaultDf.loc[defaultDf['Spinbox'] == spinbox, 'Default'].iloc[0]
+        spinbox.delete(0, 'end')
+        spinbox.insert(0, defaultVal)
     
     def ResetDefaults(self):
         """
         Resets the inputs to their default values
         """
+        # self.gravityVar.set(1)
+        self.gravityButton.invoke()
         for i, label in enumerate(inputs):
             spinbox = defaultDf.loc[defaultDf['Input'] == label, 'Spinbox'].iloc[0]
             defaultVal = defaultDf.loc[defaultDf['Input'] == label, 'Default'].iloc[0]
@@ -404,12 +480,14 @@ class App(tkinter.Frame):
             spinbox.insert(0, defaultVal)
     
     def RestartSimulation(self):
-        self.runCommand = False
+        # self.runButton.invoke()
         self.motor, self.open_loop, self.closed_loop = self.InitModel()
         self.SetMotorValues()
         self.openLoopAnimation, self.closedLoopAnimation = self.InitAnimations()
         self.RotateMotorArm(0)
-        return (self.runCommand, self.motor, self.open_loop, self.closed_loop,
+        # if self.runButton['text'] == 'Start':
+        #     self.runButton.invoke()
+        return (self.motor, self.open_loop, self.closed_loop,
                 self.openLoopAnimation, self.closedLoopAnimation)
     
     def ActivateButton(self):
@@ -422,38 +500,46 @@ class App(tkinter.Frame):
     
     def StartAnimation(self):
         loopType = self.ReturnControlType()
-        self.SetMotorValues()
-        self.runCommand = True
+        # self.SetMotorValues()
+        self.RestartSimulation()
         if loopType == 0:
+            self.openRun = True
+            self.closedRun = False
             self.OpenLoopInit()
             self.openLoopAnimation.event_source.start()
             self.closedLoopAnimation.event_source.stop()
         elif loopType == 1:
+            self.openRun = False
+            self.closedRun = True
             self.ClosedLoopInit()
             self.closedLoopAnimation.event_source.start()
             self.openLoopAnimation.event_source.stop()
-        return self.runCommand
+        return self.openRun, self.closedRun
         
     def StopAnimation(self):
         loopType = self.ReturnControlType()
-        self.runCommand = False
         
         if loopType == 0:
             self.openLoopAnimation.event_source.stop()
+            self.openRun = False
+            return self.openRun
         elif loopType == 1:
             self.closedLoopAnimation.event_source.stop()
-        return self.runCommand
+            self.closedRun = False
+            return self.closedRun
             
     def PlotGravitySymbol(self):
         """
         Add/remove gravity symbol to plot when gravity is switched on/off
         """
-        gravitySetting = self.gravityVar.get()
+        try:
+            gravitySetting = self.SetGravityProperties()
+        except:
+            gravitySetting = self.gravityVar.get()
         figure = self.motorArmFigure
         ax = figure.get_axes()[0]
         ax.set_xlim(0, 10)
         ax.set_ylim(0, 10)
-        # ax.axis('off')
         if gravitySetting == 1:
             self.gravitySymbol = ax.annotate('g', xy=(10,7), xytext=(10, 10),
                                              size=18, ha='center', va='top',
@@ -465,6 +551,16 @@ class App(tkinter.Frame):
                 pass
         figure.canvas.draw()
         return self.gravitySymbol
+    
+    def PlotAngleText(self, angle, figure, ax):
+        text = 'Angle: ' + str(round(angle, 0))
+        try:
+            self.angleText.remove()
+        except:
+            pass
+        self.angleText = ax.annotate(text, xy=(0,10), xytext=(0, 10), size=10,
+                                     ha='center', va='top')
+        return self.angleText
     
     def PlotMotorArm(self):
         """
@@ -491,7 +587,7 @@ class App(tkinter.Frame):
             spine.set_zorder(-1)
         ax.set_axisbelow(True)
         ax.axis('scaled')
-        figure.tight_layout()
+        # figure.tight_layout()
         figure.canvas.draw()
         return self.motorArm
         
@@ -503,16 +599,18 @@ class App(tkinter.Frame):
         ax = figure.get_axes()[0]
         angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, angleDeg) + ax.transData
         self.motorArm.set_transform(angleRotate)
+        self.angleText = self.PlotAngleText(angleDeg, figure, ax)
         figure.canvas.draw()
-        return self.motorArm   
+        return self.motorArm, self.angleText 
 
     def OpenLoopInit(self):
         """
         Initializes the open loop animation
         """
-        cmdAInput, timeInput = self.ReturnCommandControls()
-        self.open_loop.time_to_run = timeInput # seconds
-        self.open_loop.current_cmd = cmdAInput # Amps
+        # cmdAInput, timeInput = self.ReturnCommandControls()
+        # self.open_loop.time_to_run = timeInput # seconds
+        # self.open_loop.current_cmd = cmdAInput # Amps
+        self.SetOpenLoopProperties()
         self.open_loop.start_run = True # flag used to set timer will be set to false on first call to open_loop.step_control.  
         
         figure = self.scrollPlotFigure
@@ -533,7 +631,8 @@ class App(tkinter.Frame):
         Animates the open loop plot as long as the 'Stop' button has not been
         pushed.
         """
-        while self.runCommand == True:
+        # while self.runCommand == True:
+        while self.openRun == True:
             figure = self.scrollPlotFigure
             ax = figure.get_axes()[0]
             ax.set_title('Open Loop')
@@ -590,7 +689,8 @@ class App(tkinter.Frame):
         Animates the closed loop plot as long as the 'Stop' button has not been
         pushed.
         """
-        while self.runCommand == True:
+        # while self.runCommand == True:
+        while self.closedRun == True:
             step_control = self.closed_loop.step_control()
             figure = self.scrollPlotFigure
             ax = figure.get_axes()[0]
@@ -609,6 +709,41 @@ class App(tkinter.Frame):
             figure.canvas.draw()
             self.RotateMotorArm(angle_deg[-1])
             return self.line,
+        
+class ToolTip(object):
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        """
+        Displays tooltip on hover
+        """
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox('insert')
+        x = x + self.widget.winfo_rootx() + 20
+        y = y + cy + self.widget.winfo_rooty() + 20
+        self.tipwindow = tw = tkinter.Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry('+%d+%d' % (x, y))
+        label = tkinter.Label(tw, text=self.text, justify='left',
+                      background='#ffffe0', relief='solid', borderwidth=1,
+                      font=('tahoma', '10', 'normal'), wraplength=200)
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        """
+        Hides tooltip once mouse leaves hover object
+        """
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
     
 class Window:
     def AddMenuBar(self):
@@ -616,11 +751,30 @@ class Window:
         Creates menu at the top of the window
         """
         menuBar = tkinter.Menu(self)
-        filemenu = tkinter.Menu(menuBar, tearoff=0)
-        filemenu.add_command(label='Fullscreen Window', command=lambda: Window.MaximizeWindow(self))
-        filemenu.add_command(label='Small Window', command=lambda: Window.MinimizeWindow(self))
-        menuBar.add_cascade(label='Window Resize Options', menu=filemenu)
+        resizeMenu = tkinter.Menu(menuBar, tearoff=0)
+        helpMenu = tkinter.Menu(menuBar, tearoff=0)
+        resizeMenu.add_command(label='Fullscreen Window', command=lambda: Window.MaximizeWindow(self))
+        resizeMenu.add_command(label='Small Window', command=lambda: Window.MinimizeWindow(self))
+        helpMenu.add_command(label='Definitions', command=lambda: Window.HelpWindow(self))
+        menuBar.add_cascade(label='Window Resize Options', menu=resizeMenu)
+        menuBar.add_cascade(label='Help', menu=helpMenu)
         self.config(menu=menuBar)
+        
+    def HelpWindow(self):
+        helpWindow = tkinter.Toplevel()
+        helpWindow.iconphoto(False, icon)
+        helpWindow.title('Definitions')
+        textBox = tkinter.Text(helpWindow)
+        Window.ReturnHelpContent(self, textBox)
+        textBox.configure(state='disabled')
+        scroll = tkinter.Scrollbar(helpWindow, command=textBox.yview)
+        textBox.grid(row=0, column=0, sticky='nsew')
+        scroll.grid(row=0, column=1, sticky='nsew')
+        textBox['yscrollcommand'] = scroll.set
+        
+    def ReturnHelpContent(self, textBox):
+        with open('Documentation/inputDescription.txt', 'r') as f:
+            textBox.insert('1.0', f.read())
         
     # def CenterWindow(self):
     #     w = self.winfo_screenwidth()
@@ -649,15 +803,25 @@ class Window:
         h = self.winfo_screenheight()
         print(w/2, h/2)
         # Window.CenterWindow(self)
-        self.geometry('%dx%d+%d+%d' % (w/2, h/2, 0, 0))
+        self.geometry('%dx%d+%d+%d' % (w*.5, h*.5, 0, 0))
         print(self.geometry())
-            
+        
+def _delete_window():
+    try:
+        root.destroy()
+    except:
+        pass
+
 if __name__ == '__main__':
     root = tkinter.Tk()
     root.resizable(True, True)
-    # root.minsize(600,400)
-    # root.geometry('600x400')
+    # root.minsize(960, 540)
+    root.protocol("WM_DELETE_WINDOW", _delete_window)
+    icon = tkinter.PhotoImage(file='favicon.png')
+    root.iconphoto(False, icon)
     app = App(master=root)
     Window.AddMenuBar(root)
+    # time.sleep(0.1)
+    # Window.MinimizeWindow(root)
     app.mainloop()
     

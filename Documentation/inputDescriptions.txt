@@ -1,6 +1,6 @@
 Mass : This is the mass of the arm.  The mass is modeled to be evenly distributed along the length of the arm.
 Length : This is the length of the arm.  The arm has one end on the axis of rotation (center) of the motor shaft.
-Desired angle : The angle the arm is trying to reach in degrees.  This is only used in closed loop control.
+Desired Angle : The angle the arm is trying to reach in degrees.  This is only used in closed loop control.
 
 Gravity : When gravity is on the arm affected by gravity, meaning it will move to hang down if now current is applied, it may not hang straight down as there is friction in the model.  When gravity is off, the arm is not affected by gravity, this is like the arm is rotating in the horizontal plane.
 
