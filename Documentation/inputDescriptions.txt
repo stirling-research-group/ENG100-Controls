@@ -12,9 +12,11 @@ Closed : This controls the system using a PID controller. In this the system mod
 P : This is the proportional gain. This gain is multiplied by the difference between the desired position and the present position to generate the proportional term.  This term is added to the integral term and derivative term to generate the torque command.
 I : This is the integral gain.  This gain is multiplied by time since the last measurement and the difference between the desired position and the present position.  This value is added to a running total to generate the integral term. This term is added to the proportional term and derivative term to generate the torque command.
 D : This is the derivative gain.  This gain is multiplied by the difference between the desired position and the present position and divided by the time since the last measurement, this generates the derivative term. This term is added to the proportional term and integral term to generate the torque command.
-Reset I : The integral term is composed of a running total of values.  If there are continuous errors this value can build up a large value.  The reset I button clears the running total by setting it back to zero.
+Reset Cumulative Error Estimation : The integral term is composed of a running total of values.  If there are continuous errors this value can build up a large value.  The reset I button clears the running total by setting it back to zero.
 
 Ki : This is the motor's torque constant.  The motor torque equals the torque constant multiplied by the current.
 Bs : This is the static friction coefficient that is always present.  It resists the motor from rotating and must be overcome for the motor to spin.
 Bv : This is the viscous friction coefficient.  This is multiplied by the rotational velocity to create another friction term that resists rotation.  The faster the motor spins the more friction there is, this keeps the motor from continuing to increase speed forever.
 Jm : This is the rotational inertia of the motor.  The larger this is the more torque it takes to change the motion of the motor, harder to speed up and harder to slow down.
+
+Restart Simulation : Resets the motor, resets the arm to 0 degrees, and clears the loop plot. This will not reset any changes to parameter values. 

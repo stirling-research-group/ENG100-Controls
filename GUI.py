@@ -1,6 +1,6 @@
 from ControlsGuiModel import SystemModel, OpenLoopControl, ClosedLoopControl
 import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.collections import PatchCollection
 import matplotlib.pyplot as plt
 import numpy as np
@@ -48,13 +48,12 @@ class App(tkinter.Frame):
        self.option_add('*Font', 'Arial 10')
        self.option_add('*Button.Font', 'Arial 10 bold')
        self.option_add('*Button.Foreground', '#FFF')
-       self.option_add('*Spinbox.*Button.background', '#000000')
        # create master grid
        self.master = master
        self.master.grid_columnconfigure(0, weight=1)
        self.master.grid_columnconfigure(1, weight=1)
        self.master.grid_columnconfigure(2, weight=1)
-       for i in range(30):
+       for i in range(32):
            self.master.grid_rowconfigure(i, weight=1)
            self.grid_rowconfigure(i, weight=1)
        self.grid(row=0, column=0, sticky='nsew')
@@ -74,17 +73,15 @@ class App(tkinter.Frame):
        self.openLoopAnimation, self.closedLoopAnimation = self.InitAnimations()
        self.openLoopAnimation.event_source.stop()
        self.closedLoopAnimation.event_source.stop()
-       time.sleep(0.1)
-       Window.CenterWindow(self.master)
        
     def InitAnimations(self):
         """
         Calls functions to initialize the open/closed loop animations
         """
         self.OpenLoopInit()
-        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.OpenLoopAnimate, interval=20)
+        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.OpenLoopAnimate, interval=10)
         self.ClosedLoopInit()
-        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.ClosedLoopAnimate, interval=20)
+        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.ClosedLoopAnimate, interval=10)
         return self.openLoopAnimation, self.closedLoopAnimation
        
     def InitModel(self):
@@ -104,11 +101,11 @@ class App(tkinter.Frame):
         self.motorArmFigure, self.motorArmCanvas = self.CreatePlot(0,0,15)
         self.motorArm = self.PlotMotorArm()
         self.scrollPlotFigure, self.scrollPlotCanvas = self.CreatePlot(15,0,15)
+        self.CreatePlotToolbar(self.scrollPlotCanvas, 32, 0)
         self.MotorArmTabs()
         self.gravityButton = self.GravityButtons()
         self.controlTabs = self.ControlOptions()
         self.runButton = self.StartStopButton()
-        # resetFrame = self.ResetButtonFrame()
         self.restartSimButton = self.RestartSimulationButton()
         self.resetDefaultsButton = self.ResetDefaultsButton()
         
@@ -184,6 +181,17 @@ class App(tkinter.Frame):
         canvas.get_tk_widget().grid_columnconfigure(column, weight=1)
         return figure, canvas
     
+    def CreatePlotToolbar(self, canvas, rowNum, colNum):
+        """
+        Creates a toolbar for the plot and adds to a frame below plot
+        """
+        frame = tkinter.Frame(master=self)
+        frame.grid(row=rowNum, column=colNum, sticky='nw', pady=2)
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        toolbar = NavigationToolbar2Tk(canvas, frame)
+        toolbar.update()
+    
     def MotorArmTabs(self):
         frame = tkinter.LabelFrame(master=self, text='Motor Arm:', relief='ridge')
         frame.grid(row=0, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
@@ -196,7 +204,7 @@ class App(tkinter.Frame):
         motorTab = self.CreateTab(motorArmTabs)
         motorArmTabs.add(armTab, text='Arm Properties')
         motorArmTabs.add(motorTab, text='Motor Properties')
-        motorArmTabs.grid(columnspan=3, sticky='nsew')
+        motorArmTabs.grid(columnspan=3, rowspan=5, sticky='nsew')
         motorArmTabs.grid_rowconfigure(0, weight=1)
         motorArmTabs.grid_rowconfigure(1, weight=1)
         motorArmTabs.grid_rowconfigure(2, weight=1)
@@ -250,7 +258,7 @@ class App(tkinter.Frame):
         
     def ControlOptions(self):
         frame = tkinter.LabelFrame(master=self, text='Control:', relief='ridge')
-        frame.grid(row=15, column=1, columnspan=2, rowspan=5, padx=5, pady=5, sticky='nsew')
+        frame.grid(row=15, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
@@ -260,7 +268,7 @@ class App(tkinter.Frame):
         closedTab = self.CreateTab(controlTabs)
         controlTabs.add(openTab, text='Open')
         controlTabs.add(closedTab, text='Closed')
-        controlTabs.grid(columnspan=3, sticky='nsew')
+        controlTabs.grid(columnspan=3, rowspan=5, sticky='nsew')
         controlTabs.grid_rowconfigure(0, weight=1)
         controlTabs.grid_rowconfigure(1, weight=1)
         controlTabs.grid_rowconfigure(2, weight=1)
@@ -300,7 +308,7 @@ class App(tkinter.Frame):
                                text='Reset Cumulative Error Estimation',
                                command=self.ResetErrorSum)
         reset.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky='nsew')
-        self.CreateToolTip(reset, 'I:')
+        self.CreateToolTip(reset, 'Reset Cumulative Error Estimation')
         return pidFrame
 
     def RestartSimulationButton(self):
@@ -311,7 +319,8 @@ class App(tkinter.Frame):
                                           bg='#CFD8DC',
                                           command=self.RestartSimulation,
                                           state='disabled')
-        restartSimButton.grid(row=27, column=1, padx=5, pady=5, sticky='nsew')
+        restartSimButton.grid(row=29, column=1, padx=5, pady=5, sticky='nsew')
+        self.CreateToolTip(restartSimButton, 'Restart Simulation')
         return restartSimButton
     
     def ResetDefaultsButton(self):
@@ -322,7 +331,7 @@ class App(tkinter.Frame):
                                              text='Reset to Default Values',
                                              bg='#0288D1',
                                              command=self.ResetDefaults)
-        resetDefaultsButton.grid(row=27, column=2, padx=5, pady=5, sticky='nsew')
+        resetDefaultsButton.grid(row=29, column=2, padx=5, pady=5, sticky='nsew')
         return resetDefaultsButton
     
     def StartStopButton(self):
@@ -331,7 +340,7 @@ class App(tkinter.Frame):
         """
         runButton = tkinter.Button(self, text='Start', bg='#009688',
                                    command=self.ActivateButton)
-        runButton.grid(row=25, column=2, padx=5, pady=5, sticky='nsew')
+        runButton.grid(row=27, column=2, padx=5, pady=5, sticky='nsew')
         return runButton
     
     def AddSpinboxGrid(self, i, label, frame):
@@ -362,15 +371,6 @@ class App(tkinter.Frame):
         spinbox.grid_columnconfigure(colNum, weight=1)
         self.CreateToolTip(spinboxLabel, label)
         return spinbox
-        
-    def CreateFrame(self, rowNum, colNum, stickyValue):
-        """
-        Creates a frame for holding widgets
-        """
-        frame = tkinter.Frame(master=self)
-        frame.grid(row=rowNum, column=colNum, padx=(30, 10), pady=10,
-                   sticky=stickyValue)
-        return frame
     
     def CreateTab(self, frame):
         """
@@ -734,17 +734,25 @@ class Window:
         menuBar = tkinter.Menu(self)
         resizeMenu = tkinter.Menu(menuBar, tearoff=0)
         helpMenu = tkinter.Menu(menuBar, tearoff=0)
+        aboutMenu = tkinter.Menu(menuBar, tearoff=0)
         resizeMenu.add_command(label='Fullscreen Window', command=lambda: Window.MaximizeWindow(self))
         resizeMenu.add_command(label='Small Window', command=lambda: Window.CenterWindow(self))
         helpMenu.add_command(label='Definitions', command=lambda: Window.HelpWindow(self))
         menuBar.add_cascade(label='Window Resize Options', menu=resizeMenu)
         menuBar.add_cascade(label='Help', menu=helpMenu)
+        menuBar.add_command(label='About', command=lambda: Window.AboutWindow(self))
         self.config(menu=menuBar)
         
     def HelpWindow(self):
+        """
+        Opens a new window with definitions for key terms in the GUI
+        """
         helpWindow = tkinter.Toplevel()
         helpWindow.iconphoto(False, icon)
         helpWindow.title('Definitions')
+        helpWindow.grid()
+        helpWindow.grid_columnconfigure(0, weight=1)
+        helpWindow.grid_rowconfigure(0, weight=1)
         textBox = tkinter.Text(helpWindow)
         Window.ReturnHelpContent(self, textBox)
         textBox.configure(state='disabled')
@@ -755,6 +763,22 @@ class Window:
         
     def ReturnHelpContent(self, textBox):
         with open('Documentation/inputDescription.txt', 'r') as f:
+            textBox.insert('1.0', f.read())
+            
+    def AboutWindow(self):
+        """
+        Opens a new window with information about the GUI creators
+        """
+        aboutWindow = tkinter.Toplevel()
+        aboutWindow.iconphoto(False, icon)
+        aboutWindow.title('About')
+        textBox = tkinter.Text(aboutWindow)
+        Window.ReturnAboutContent(self, textBox)
+        textBox.configure(state='disabled')
+        textBox.grid(row=0, column=0, sticky='nsew')
+        
+    def ReturnAboutContent(self, textBox):
+        with open('Documentation/about.txt', 'r') as f:
             textBox.insert('1.0', f.read())
         
     def CenterWindow(self):
