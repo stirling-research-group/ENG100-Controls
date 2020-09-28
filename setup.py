@@ -17,7 +17,7 @@ options = {
     'build_exe': {    
         'packages': packages, 
         'include_files': include_files,
-        'excludes': 'scipy.spatial.cKDTree'
+        'excludes': ['scipy.spatial.cKDTree', 'matplotlib.tests', 'numpy.random._examples']
     },
 }
 
