@@ -29,11 +29,11 @@ defaultVals = {'Input': inputs,
                'Format': ['%.2f', '%.3f', '%.0f',
                           '%.3f', '%.4f', '%.3f', '%.5f',
                           '%.2f', '%.2f',
-                          '%.2f', '%.3f', '%.3f'],
+                          '%.2f', '%.4f', '%.4f'],
                'Steps': [0.05, 0.001, 5,
                          0.001, 0.0001, 0.001, 0.00001,
                          0.01, 0.10,
-                         0.01, 0.001, 0.001],
+                         0.01, 0.0001, 0.0001],
                'Spinbox' : [0,0,0,0,0,0,0,0,0,0,0,0]}
 
 defaultDf = pd.DataFrame(defaultVals)
@@ -79,9 +79,9 @@ class App(tkinter.Frame):
         Calls functions to initialize the open/closed loop animations
         """
         self.OpenLoopInit()
-        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.OpenLoopAnimate, interval=10)
+        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.OpenLoopAnimate, interval=20)
         self.ClosedLoopInit()
-        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.ClosedLoopAnimate, interval=10)
+        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlotFigure, self.ClosedLoopAnimate, interval=20)
         return self.openLoopAnimation, self.closedLoopAnimation
        
     def InitModel(self):
@@ -101,7 +101,7 @@ class App(tkinter.Frame):
         self.motorArmFigure, self.motorArmCanvas = self.CreatePlot(0,0,15)
         self.motorArm = self.PlotMotorArm()
         self.scrollPlotFigure, self.scrollPlotCanvas = self.CreatePlot(15,0,15)
-        self.CreatePlotToolbar(self.scrollPlotCanvas, 32, 0)
+        self.toolbarFrame = self.CreatePlotToolbar(self.scrollPlotCanvas, 32, 0)
         self.MotorArmTabs()
         self.gravityButton = self.GravityButtons()
         self.controlTabs = self.ControlOptions()
@@ -109,7 +109,7 @@ class App(tkinter.Frame):
         self.restartSimButton = self.RestartSimulationButton()
         self.resetDefaultsButton = self.ResetDefaultsButton()
         
-    def SetArmProperties(self):
+    def SetArmProperties(self, event=None):
         """
         Sets the arm properties based on the user inputs
         """
@@ -126,7 +126,7 @@ class App(tkinter.Frame):
         self.motor.use_grav = gravitySetting  # 0 for no gravity 1 for with gravity
         return self.motor.use_grav
         
-    def SetMotorProperties(self):
+    def SetMotorProperties(self, event=None):
         """
         Sets the motor properties based on the user inputs
         """
@@ -137,7 +137,7 @@ class App(tkinter.Frame):
         self.motor.B_s = bvInput #0.1 #0.002 # Nm Coefficient of static friction
         self.motor.J_m = jmInput # kg*m^2 Rotor Moment of Inertia
         
-    def SetPIDProperties(self):
+    def SetPIDProperties(self, event=None):
         """
         Sets the PID properties based on the user inputs
         """
@@ -158,7 +158,7 @@ class App(tkinter.Frame):
         self.SetOpenLoopProperties()
         self.SetPIDProperties()
         
-    def SetOpenLoopProperties(self):
+    def SetOpenLoopProperties(self, event=None):
         """
         Sets the current cmd and time to run for the open loop plotting
         """
@@ -185,12 +185,13 @@ class App(tkinter.Frame):
         """
         Creates a toolbar for the plot and adds to a frame below plot
         """
-        frame = tkinter.Frame(master=self)
-        frame.grid(row=rowNum, column=colNum, sticky='nw', pady=2)
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
-        toolbar = NavigationToolbar2Tk(canvas, frame)
+        self.toolbarFrame = tkinter.Frame(master=self)
+        self.toolbarFrame.grid(row=rowNum, column=colNum, pady=2)
+        # self.toolbarFrame.grid_columnconfigure(0, weight=1)
+        # self.toolbarFrame.grid_rowconfigure(0, weight=1)
+        toolbar = NavigationToolbar2Tk(canvas, self.toolbarFrame)
         toolbar.update()
+        return self.toolbarFrame
     
     def MotorArmTabs(self):
         frame = tkinter.LabelFrame(master=self, text='Motor Arm:', relief='ridge')
@@ -225,6 +226,7 @@ class App(tkinter.Frame):
             armTab.grid_rowconfigure(i, weight=1)
             spinbox = self.AddSpinboxGrid(i, label, armTab)
             spinbox.config(command=self.SetArmProperties)
+            spinbox.bind('<Return>', self.SetArmProperties)
             
     def MotorProperties(self, motorTab):
         """
@@ -237,10 +239,11 @@ class App(tkinter.Frame):
             motorTab.grid_rowconfigure(i, weight=1)
             spinbox = self.AddSpinboxGrid(i, label, motorTab)
             spinbox.config(command=self.SetMotorProperties)
+            spinbox.bind('<Return>', self.SetMotorProperties)
             
     def GravityButtons(self):
         frame = tkinter.LabelFrame(master=self, text='Gravity:', relief='ridge')
-        frame.grid(row=5, column=1, columnspan=2, rowspan=1, padx=5, pady=5, sticky='nsew')
+        frame.grid(row=5, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
         frame.grid_rowconfigure(0, weight=1)
@@ -260,9 +263,9 @@ class App(tkinter.Frame):
         frame = tkinter.LabelFrame(master=self, text='Control:', relief='ridge')
         frame.grid(row=15, column=1, columnspan=2, padx=5, pady=5, sticky='nsew')
         frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
         frame.grid_columnconfigure(2, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
         controlTabs = ttk.Notebook(frame, padding=(20, 10, 20, 10))
         openTab = self.CreateTab(controlTabs)
         closedTab = self.CreateTab(controlTabs)
@@ -275,6 +278,7 @@ class App(tkinter.Frame):
         controlTabs.grid_rowconfigure(3, weight=1)
         controlTabs.grid_columnconfigure(0, weight=1)
         controlTabs.grid_columnconfigure(1, weight=1)
+        controlTabs.grid_columnconfigure(2, weight=1)
         self.CommandControls(openTab)
         self.PIDControls(closedTab)
         return controlTabs
@@ -290,6 +294,7 @@ class App(tkinter.Frame):
             cmdFrame.grid_rowconfigure(i, weight=1)
             spinbox = self.AddSpinboxGrid(i, label, cmdFrame)
             spinbox.config(command=self.SetOpenLoopProperties)
+            spinbox.bind('<Return>', self.SetOpenLoopProperties)
         return cmdFrame
     
     def PIDControls(self, pidFrame):
@@ -303,6 +308,7 @@ class App(tkinter.Frame):
             pidFrame.grid_rowconfigure(i, weight=1)
             spinbox = self.AddSpinboxGrid(i, label, pidFrame)
             spinbox.config(command=self.SetPIDProperties)
+            spinbox.bind('<Return>', self.SetPIDProperties)
         pidFrame.grid_rowconfigure(3, weight=1)
         reset = tkinter.Button(pidFrame, bg='#0288D1',
                                text='Reset Cumulative Error Estimation',
@@ -353,8 +359,10 @@ class App(tkinter.Frame):
         stepVal = defaultDf.loc[defaultDf['Input'] == label, 'Steps'].iloc[0]
         formatVal = defaultDf.loc[defaultDf['Input'] == label, 'Format'].iloc[0]
         spinbox = self.CreateSpinboxGrid(i, 0, frame, label, minVal, maxVal)
-        spinbox.insert(0, defaultVal)
-        spinbox.config(increment=stepVal, format=formatVal, takefocus=False)
+        # spinbox.insert(0, defaultVal)
+        var = tkinter.IntVar()
+        var.set(defaultVal)
+        spinbox.config(increment=stepVal, format=formatVal, takefocus=False, textvariable=var)
         defaultDf.loc[defaultDf['Input'] == label, 'Spinbox'] = spinbox
         return spinbox
     
@@ -500,6 +508,7 @@ class App(tkinter.Frame):
         self.RestartSimulation()
         self.restartSimButton['state'] = 'disabled'
         self.restartSimButton.configure(bg='#CFD8DC', command=self.RestartSimulation)
+        # self.toolbarFrame.grid_forget()
         if loopType == 0:
             self.openRun = True
             self.closedRun = False
@@ -521,6 +530,7 @@ class App(tkinter.Frame):
         self.closedLoopAnimation.event_source.stop()
         self.restartSimButton['state'] = 'normal'
         self.restartSimButton.configure(bg='#0288D1', command=self.RestartSimulation)
+        # self.toolbarFrame.grid()
         return self.openRun, self.closedRun
             
     def PlotGravitySymbol(self):
@@ -548,7 +558,14 @@ class App(tkinter.Frame):
         return self.gravitySymbol
     
     def PlotAngleText(self, angle, figure, ax):
-        text = 'Angle: ' + str(int(angle))
+        """
+        Adds the current angle to the motor arm plot. Converts angle to
+        scientific notation if the output is 5 digits or longer
+        """
+        angleStr = str(int(angle))
+        if len(angleStr) >= 5:
+            angleStr = '{:.2e}'.format(int(angle))
+        text = 'Angle: ' + angleStr
         try:
             self.angleText.remove()
         except:
@@ -736,7 +753,7 @@ class Window:
         helpMenu = tkinter.Menu(menuBar, tearoff=0)
         aboutMenu = tkinter.Menu(menuBar, tearoff=0)
         resizeMenu.add_command(label='Fullscreen Window', command=lambda: Window.MaximizeWindow(self))
-        resizeMenu.add_command(label='Small Window', command=lambda: Window.CenterWindow(self))
+        resizeMenu.add_command(label='Small Window', command=lambda: Window.MinimizeWindow(self))
         helpMenu.add_command(label='Definitions', command=lambda: Window.HelpWindow(self))
         menuBar.add_cascade(label='Window Resize Options', menu=resizeMenu)
         menuBar.add_cascade(label='Help', menu=helpMenu)
@@ -782,9 +799,11 @@ class Window:
             textBox.insert('1.0', f.read())
         
     def CenterWindow(self):
+        """
+        Center window on screen and shrink to 60%
+        """
         w = self.winfo_screenwidth()
         h = self.winfo_screenheight()
-        self.geometry('%dx%d' % (w*.6, h*.6))
         size = tuple(int(pos) for pos in self.geometry().split('+')[0].split('x'))
         x = w/2 - size[0]/2
         y = h/2 - size[1]/2
