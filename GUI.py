@@ -48,6 +48,7 @@ class App(tkinter.Frame):
        self.option_add('*Font', 'Arial 10')
        self.option_add('*Button.Font', 'Arial 10 bold')
        self.option_add('*Button.Foreground', '#FFF')
+       self.option_add('*Spinbox.Font', 'Arial 12')
        # create master grid
        self.master = master
        self.master.grid_columnconfigure(0, weight=1)

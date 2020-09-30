@@ -1,0 +1,25 @@
+How to run the application:
+
+- Install the following Python libraries:
+
+  - matplotlib
+  - numpy
+  - pandas
+  - scipy
+
+- In the terminal/command prompt, navigate to the folder containing the file GUI.py.
+  - To change the directory, you can use the command "cd" followed by a space and the location of the folder.
+    Some examples:
+	
+	cd Documents/FolderLocation
+
+	cd C:/User/YourName/Documents/ENG100/FolderLocation
+
+- Once you are in the folder, you can use one of the following commands to run the GUI.py file:
+
+  - For Windows:
+	GUI.py
+
+  - For Mac:
+	python3 GUI.py
+ 
