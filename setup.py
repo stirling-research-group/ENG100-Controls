@@ -6,13 +6,14 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-executables = [Executable('GUI.py', base=base, targetName='ENG100Controls.exe')]
+executables = [Executable('QtGUI.py', base=base, targetName='ENG100Controls.exe')]
 
 include_files = ['packages/mpl_toolkits',
                  'Documentation/',
                  'favicon.png']
-packages = ['matplotlib', 'numpy', 'pandas', 'scipy', 'scipy.integrate',
-            'scipy.spatial.ckdtree', 'time', 'tkinter']
+packages = ['matplotlib', 'numpy', 'pandas', 'PyQt5.QtCore', 'PyQt5.QtWidgets',
+            'PyQt5.uic', 'scipy', 'scipy.integrate', 'scipy.spatial.ckdtree',
+            'time']
 options = {
     'build_exe': {    
         'packages': packages, 

@@ -176,6 +176,10 @@ class ClosedLoopControl:
         
         self.model = model
         
+    def update_angle_ref(self, angle):
+        self.angle_ref = np.deg2rad(angle)
+        return self.angle_ref
+        
     def step_control(self):
         
         self.time = time.monotonic();
