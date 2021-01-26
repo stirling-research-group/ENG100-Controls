@@ -214,15 +214,7 @@
     </property>
     <addaction name="actionClose"/>
    </widget>
-   <widget class="QMenu" name="menuWindow">
-    <property name="title">
-     <string>Window</string>
-    </property>
-    <addaction name="actionMaximize"/>
-    <addaction name="actionSmall_Window"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuWindow"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionClose">

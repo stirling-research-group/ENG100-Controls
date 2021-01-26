@@ -4,5 +4,40 @@
     <link href="template-style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
+      <h1>Interface Model</h1>
+      <p>
+        This interface uses a model for a DC motor with a slender rod attached. The system is implemented using the following dynamics equations.  The <span class="blue">first</span> term is the inertial torque for both the motor and the rod.  The <span class="orange">second</span> and <span class="green">third</span> terms are the viscous and static friction torques, respectively.  The <span class="purple">fourth</span> term is the torque due to gravity.  The <span class="yellow">last</span> term is the torque produced by the motor.
+      </p>
+      <img src="InterfaceModelEquation.png" width="100%">
+      <p>
+        In this model are several key parameters:
+        <ul>
+            <li>
+              <span class="parameter">i</span>: The current passing through the motor (A).
+            </li>
+            <li>
+              <span class="parameter">K<sub>i</sub></span>: The motor's torque constant(Nm/A).  The torque the motor can produce is equal to this torque constant multiplied by the current.
+            </li>
+            <li>
+              <span class="parameter">B<sub>s</sub></span>: The static friction coefficient of the motor(Nm).  This friction resists the motor from rotating and must be overcome for the motor to spin.
+            </li>
+            <li>
+              <span class="parameter">B<sub>v</sub></span>: The viscous friction coefficient(Nm/(rad/s)).  This friction is multiplied by the rotational velocity of the motor,  creating a torque that resists rotation.  A faster motor rotation creates more viscous friction.
+            </li>
+            <li>
+              <span class="parameter">J<sub>m</sub></span>: The rotational inertia of the motor, also called the moment of inertia (kg/m2).  The rotational inertia is a mass distribution that affects the torque required to move the system. A greater rotational inertia  requires a larger torque to change the motor orientation.
+            </li>
+            <li>
+              <span class="parameter">M</span>: The mass of the arm (kg).  The mass is modeled to be evenly distributed along the length of the arm.
+            </li>
+            <li>
+              <span class="parameter">L</span>: The length of the arm(m).  The arm connects to the axis of rotation (center) of the motor shaft.
+            </li>
+            <li>
+              <span class="parameter">g</span>: Gravity is aligned in the vertical direction (up/down on the screen)(m/s2). When gravity is “on” the arm is affected by gravity. If no current is applied, the arm will rotate to hang down.  When gravity is “off,” the gravity is set to zero. This scenario is similar to if gravity is pointing into the screen. The arm is not affected by gravity in this direction.
+            </li>
+        </ul>
+
+      </p>
   </body>
 </html>

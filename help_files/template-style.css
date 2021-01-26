@@ -1,0 +1,52 @@
+body {
+  margin: 20px;
+  font-family: Arial;
+}
+.blue {
+  color: #2E75B6;
+  font-weight: bold;
+}
+.orange {
+  color: #C55A11;
+  font-weight: bold;
+}
+.green {
+  color: #548235;
+  font-weight: bold;
+}
+.purple {
+  color: #7030A0;
+  font-weight: bold;
+}
+.yellow {
+  color: #BF9000;
+  font-weight: bold;
+}
+.parameter {
+    font-style: italic;
+    font-weight: bold;
+    font-size: 20px;
+    font-family: News Gothic;
+}
+.text-image {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0px;
+}
+.flex-image {
+  max-width: 250px;
+  flex: 1;
+}
+.flex-text {
+  flex: 1;
+}
+.variable {
+  font-style: italic;
+  font-family: News Gothic;
+  font-size: 18px;
+}
+ul li {
+  padding: 5px 0px;
+}

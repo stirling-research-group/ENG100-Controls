@@ -4,4 +4,30 @@
 QPushButton {
     color: #fff;
     background-color: #37474F;
+    font-weight: bold;
+    font-size: 16px;
+}
+QPushButton#StartStopSimulation {
+    background-color: #009688;
+}
+QPushButton#StartStopSimulation::checked {
+    background-color: #d32f2f;
+}
+QPushButton::disabled {
+    color: #616161;
+    background-color: #bdbdbd;
+}
+QSpinBox::hover,
+QDoubleSpinBox,
+QDoubleSpinBox::hover,
+QDoubleSpinBox::active,
+QDoubleSpinBox::focus,
+QDoubleSpinBox::enter {
+    font-size: 16px;
+    padding: 5px;
+    background-color: #ffffff;
+}
+QDoubleSpinBox::down-button,
+QDoubleSpinBox::up-button {
+
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>915</width>
-    <height>928</height>
+    <width>986</width>
+    <height>893</height>
    </rect>
   </property>
   <property name="font">
@@ -94,42 +94,6 @@
               <property name="horizontalSpacing">
                <number>20</number>
               </property>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <family>Yu Gothic UI Semibold</family>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Desired Angle:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="font">
-                 <font>
-                  <family>Yu Gothic UI Semibold</family>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Mass (kg):</string>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="sizePolicy">
@@ -193,6 +157,81 @@
                 </property>
                 <property name="value">
                  <double>45.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Yu Gothic UI Semibold</family>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Desired Angle:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Yu Gothic UI Semibold</family>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Mass (kg):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_14">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.25)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_15">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.010)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_16">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 45)</string>
                 </property>
                </widget>
               </item>
@@ -261,22 +300,6 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="kiInput">
-                <property name="decimals">
-                 <number>3</number>
-                </property>
-                <property name="maximum">
-                 <double>999.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="value">
-                 <double>0.136000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="bsInput">
                 <property name="decimals">
@@ -290,6 +313,38 @@
                 </property>
                 <property name="value">
                  <double>0.003000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="jmInput">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.000010000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.000510000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="kiInput">
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.136000000000000</double>
                 </property>
                </widget>
               </item>
@@ -309,19 +364,137 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="jmInput">
-                <property name="decimals">
-                 <number>5</number>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_17">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <property name="maximum">
-                 <double>999.000000000000000</double>
+                <property name="text">
+                 <string>(default: 0..136)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_18">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.0030)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_19">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.020)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QLabel" name="label_20">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.00051)</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="SimulationPropertiesTab">
+             <attribute name="title">
+              <string>Simulation Properties</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_7">
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="timestepInput">
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="minimum">
+                 <double>0.001000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>0.000010000000000</double>
+                 <double>0.001000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_26">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Arm Starting Angle:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Timestep (s):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="startAngleInput">
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="maximum">
+                 <double>360.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>5.000000000000000</double>
                 </property>
                 <property name="value">
-                 <double>0.000510000000000</double>
+                 <double>0.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_27">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.001)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_28">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0)</string>
                 </property>
                </widget>
               </item>
@@ -409,8 +582,8 @@
               <property name="horizontalSpacing">
                <number>20</number>
               </property>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_9">
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_21">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                   <horstretch>0</horstretch>
@@ -418,20 +591,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Time (s):</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Current CMD (A):</string>
+                 <string>(default: 0.30)</string>
                 </property>
                </widget>
               </item>
@@ -451,6 +611,19 @@
                 </property>
                </widget>
               </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Current CMD (A):</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="timeInput">
                 <property name="minimum">
@@ -464,6 +637,32 @@
                 </property>
                 <property name="value">
                  <double>5.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Time (s):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_22">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 5.00)</string>
                 </property>
                </widget>
               </item>
@@ -487,19 +686,6 @@
                 </property>
                 <property name="text">
                  <string>I:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>D:</string>
                 </property>
                </widget>
               </item>
@@ -545,6 +731,19 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>D:</string>
+                </property>
+               </widget>
+              </item>
               <item row="2" column="1">
                <widget class="QDoubleSpinBox" name="dInput">
                 <property name="decimals">
@@ -558,6 +757,45 @@
                 </property>
                 <property name="value">
                  <double>0.010000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_23">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.50)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_24">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.050)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_25">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>(default: 0.010)</string>
                 </property>
                </widget>
               </item>
@@ -597,11 +835,11 @@
          <property name="formAlignment">
           <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
          </property>
+         <property name="bottomMargin">
+          <number>30</number>
+         </property>
          <item row="0" column="0">
           <widget class="QPushButton" name="StartStopSimulation">
-           <property name="styleSheet">
-            <string notr="true">background: #009688;</string>
-           </property>
            <property name="text">
             <string>Start</string>
            </property>
@@ -649,8 +887,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>915</width>
-     <height>23</height>
+     <width>986</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWindow_Resize_Options">
@@ -668,6 +906,7 @@
     <property name="title">
      <string>About</string>
     </property>
+    <addaction name="actionView_Details"/>
    </widget>
    <addaction name="menuWindow_Resize_Options"/>
    <addaction name="menuHelp"/>
@@ -677,6 +916,11 @@
   <action name="actionView_Help_Topics">
    <property name="text">
     <string>View Help Topics</string>
+   </property>
+  </action>
+  <action name="actionView_Details">
+   <property name="text">
+    <string>View Details</string>
    </property>
   </action>
  </widget>

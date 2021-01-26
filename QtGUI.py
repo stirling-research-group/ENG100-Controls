@@ -12,8 +12,8 @@ import pandas as pd
 import sys
 import time
 
-helpDf = pd.read_csv('Documentation/inputDescriptions.txt', sep=" : ",
-                     header=None, names=['Label', 'Text'], engine='python')
+# helpDf = pd.read_csv('Documentation/inputDescriptions.txt', sep=" : ",
+#                      header=None, names=['Label', 'Text'], engine='python')
 
 # Load UI file (Created with QT Designer)
 windowUI = uic.loadUiType('MainWindow.ui')[0]
@@ -38,15 +38,17 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
                             'bsInput': 0.003, 'bvInput': 0.020,
                             'jmInput': 0.00051, 'cmdInput': 0.30,
                             'timeInput': 5.00, 'pInput': 0.50,
-                            'iInput': 0.05, 'dInput': 0.01}
+                            'iInput': 0.05, 'dInput': 0.01,
+                            'timestepInput': 0.001, 'startAngleInput': 0}
         
     def InitWindow(self):
         """
         Initializes the main window
         """
         # init UI components
-        self.setWindowTitle('ENG100')
-        self.actionView_Help_Topics.triggered.connect(lambda: Help.OpenWindow(self))
+        self.setWindowTitle('Open and Closed Loop Control Demo')
+        self.actionView_Help_Topics.triggered.connect(lambda: MenuWindows.OpenWindow(self))
+        self.actionView_Details.triggered.connect(lambda: MenuWindows.OpenAboutDialog(self))
         self.InitPlots()
         self.GravityOn.toggled.connect(lambda: MotorArm.UpdateGravity(self))
         # init model
@@ -86,16 +88,23 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         # arm properties
         self.massInput.valueChanged.connect(self.motor.update_arm_mass)
         self.lengthInput.valueChanged.connect(self.motor.update_arm_length)
-        self.angleInput.valueChanged.connect(lambda angle: ClosedLoopControl.update_angle_ref(self, angle))
-    
-    # def SetPropertyValue(self, newValue, currentProperty):
-    #     """
-    #     Update the value of a given currentProperty
-    #     """
-    #     newValue = self.sender().value()
-    #     currentProperty = newValue
-    #     print(newValue, currentProperty)
-    #     return currentProperty
+        self.angleInput.valueChanged.connect(lambda angle: ClosedLoopControl.update_angle_ref(self.closed_loop, angle))
+        # open loop properties
+        self.cmdInput.valueChanged.connect(lambda cmd: OpenLoopControl.update_current_cmd(self.open_loop, cmd))
+        self.timeInput.valueChanged.connect(lambda time_to_run: OpenLoopControl.update_time_to_run(self.open_loop, time_to_run))
+        # closed loop properties
+        self.pInput.valueChanged.connect(lambda kp: ClosedLoopControl.update_kp(self.closed_loop, kp))
+        self.iInput.valueChanged.connect(lambda ki: ClosedLoopControl.update_ki(self.closed_loop, ki))
+        self.dInput.valueChanged.connect(lambda kd: ClosedLoopControl.update_kd(self.closed_loop, kd))
+        # motor properties
+        self.kiInput.valueChanged.connect(lambda ki: SystemModel.update_K_t(self.motor, ki))
+        self.bsInput.valueChanged.connect(lambda bs: SystemModel.update_B_s(self.motor, bs))
+        self.bvInput.valueChanged.connect(lambda bv: SystemModel.update_B_v(self.motor, bv))
+        self.jmInput.valueChanged.connect(lambda jm: SystemModel.update_J_m(self.motor, jm))
+        # simulation properties
+        self.timestepInput.valueChanged.connect(lambda time: SystemModel.update_timestep(self.motor, time))
+        self.startAngleInput.valueChanged.connect(lambda: Animations.RotateMotorArm(self, 0))
+        
     
     def SetArmProperties(self, event=None):
         """
@@ -113,7 +122,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.motor.use_grav = self.gravitySetting  # 0 for no gravity 1 for with gravity
         return self.motor.use_grav
         
-    def SetMotorProperties(self, event=None):
+    def SetMotorProperties(self):
         """
         Sets the motor properties based on the user inputs
         """
@@ -123,17 +132,27 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.motor.B_s = self.bvInput.value() #0.1 #0.002 # Nm Coefficient of static friction
         self.motor.J_m = self.jmInput.value() # kg*m^2 Rotor Moment of Inertia
         
-    def SetPIDProperties(self, event=None):
+    def SetPIDProperties(self):
         """
         Sets the PID properties based on the user inputs
         """
         self.closed_loop.kp = self.pInput.value()
         self.closed_loop.ki = self.iInput.value()
         self.closed_loop.kd = self.dInput.value()
+        
+    def SetOpenLoopProperties(self):
+        """
+        Sets the current cmd and time to run for the open loop plotting
+        """
+        self.open_loop.time_to_run = self.timeInput.value() # seconds
+        self.open_loop.current_cmd = self.cmdInput.value() # Amps
+        
+    def SetSimulationProperties(self):
+        self.motor.timestep = self.timestepInput.value()
     
     def SetMotorValues(self):
         """
-        Resets motor and retrieves user's inputs for motor, arm, open, and
+        Resets motor and retrieves user's inputs for motor, arm, simulation, open, and
         closed loop properties
         """
         self.motor.reset()
@@ -142,23 +161,18 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.SetGravityProperties()
         self.SetOpenLoopProperties()
         self.SetPIDProperties()
-        
-    def SetOpenLoopProperties(self, event=None):
-        """
-        Sets the current cmd and time to run for the open loop plotting
-        """
-        self.open_loop.time_to_run = self.timeInput.value() # seconds
-        self.open_loop.current_cmd = self.cmdInput.value() # Amps
+        self.SetSimulationProperties()
         
     def ActivateStartStopButton(self):
         button = self.StartStopSimulation
         if button.isChecked():
             button.setText('Stop')
-            button.setStyleSheet('background-color: #d32f2f')
+            self.SetMotorValues()
+            # button.setStyleSheet('background-color: #d32f2f')
             Animations.StartAnimation(self)
         else:
             button.setText('Start')
-            button.setStyleSheet('background-color: #009688')
+            # button.setStyleSheet('background-color: #009688')
             Animations.StopAnimation(self)
             
     def ResetDefaultValues(self):
@@ -173,12 +187,13 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         """
         self.motor, self.open_loop, self.closed_loop = self.InitModel()
         self.SetMotorValues()
-        Animations.RotateMotorArm(self, 0)
+        Animations.RotateMotorArm(self, self.startAngleInput.value())
         try:
             self.line.remove()
             self.scrollPlot.canvas.draw()
         except:
             pass
+        self.ResetPlots.setEnabled(False)
         return (self.motor, self.open_loop, self.closed_loop,
                 self.openLoopAnimation, self.closedLoopAnimation)
             
@@ -227,7 +242,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
                 self.line.set_xdata(self.model_time)
                 self.line.set_ydata(angle_deg)
             ax.set_xlim((self.model_time[-1]-10), self.model_time[-1])
-            ax.set_ylim(angle_deg.min(), angle_deg.max()+10)
+            ax.set_ylim(0, angle_deg.max()+10)
             figure.canvas.draw()
             Animations.RotateMotorArm(self, angle_deg[-1])
             return self.line,
@@ -256,6 +271,7 @@ class MotorArm:
         patches = [self.motorArmCenter, self.motorArmRect]
         self.motorArm = PatchCollection(patches, fc='gray')
         ax.add_collection(self.motorArm)
+        # RotateMotorArm(self, self.startAngleInput.value())
         ax.spines['left'].set_position('center')
         ax.spines['right'].set_color('none')
         ax.spines['bottom'].set_position('center')
@@ -354,6 +370,7 @@ class Animations:
     
     def StartAnimation(self):
         self.ResetPlots.setEnabled(False)
+        self.ResetPlotsClicked()
         loopType = self.LoopControlTab.currentIndex()
         if loopType == 0:
             self.openRun = True
@@ -375,9 +392,6 @@ class Animations:
         self.openLoopAnimation.event_source.stop()
         self.closedLoopAnimation.event_source.stop()
         self.ResetPlots.setEnabled(True)
-        self.ResetPlots.setStyleSheet('background-color: #0288D1')
-        # self.restartSimButton['state'] = 'normal'
-        # self.restartSimButton.configure(bg='#0288D1', command=self.RestartSimulation)
         return self.openRun, self.closedRun
     
     def RotateMotorArm(self, angleDeg):
@@ -386,7 +400,10 @@ class Animations:
         """
         figure = self.motorArmPlot.figure
         ax = figure.get_axes()[0]
-        angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, angleDeg) + ax.transData
+        startAngle = self.startAngleInput.value()
+        updatedAngle = angleDeg + startAngle
+        # angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, angleDeg) + ax.transData
+        angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, updatedAngle) + ax.transData
         self.motorArm.set_transform(angleRotate)
         self.angleText = MotorArm.PlotAngleText(self, angleDeg, figure, ax)
         self.motorArmPlot.canvas.draw()
@@ -433,17 +450,32 @@ class Animations:
         self.line = []
         return self.start_time, self.angle, self.model_time, self.line
 
-class Help:
-    def OpenWindow(self):
+class MenuWindows:
+    def OpenHelpWindow(self):
         """
-            Opens Help Window to specific .html file
+        Opens Help Window
         """
-        # if self._subWindow is None:
         self._subWindow = HelpWindow.HelpWindowObject()
-        # HelpWindow.HelpWindowObject.LoadHTML(self._subWindow, filename)
+        HelpWindow.HelpWindowObject.LoadHTML(self._subWindow, 'help_files/Overview.html')
         self._subWindow.show()
         self._subWindow.setWindowState(self._subWindow.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         self._subWindow.activateWindow()
+        
+    def OpenAboutDialog(self):
+        aboutDialog = AboutDialog()
+        aboutDialog.exec_()
+        
+class AboutDialog(QtWidgets.QDialog):
+
+    def __init__(self):
+        """
+        Creates About Window
+        """
+        super(AboutDialog, self).__init__()
+        # Load UI file (Created with QT Designer)
+        uic.loadUiType('AboutWindow.ui', self)
+        self.setWindowTitle('About')
+
     
         
 app = QtWidgets.QApplication(sys.argv)

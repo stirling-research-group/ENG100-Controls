@@ -4,5 +4,25 @@
     <link href="template-style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
+    <h1>Closed Loop Control</h1>
+    <p>
+      In this interface, the system modifies the applied current to try to maintain the <b>desired angle</b>. The control system implemented is a Proportional-Integral-Derivative (PID) controller. The feedback used in this controller is the error, <span class="variable">e(t)</span>, which is the difference between the desired position (<span class="variable">&Theta;<sub>R</sub></span>) and the present measured position (<span class="variable">&Theta;<sub>meas</sub>(t)</span>) for the current time, <span class="variable">t</span>.
+    </p>
+    <p>
+      The PID controller is then written as follows:
+    </p>
+    <img src="ClosedLoopControl.png" width="100%">
+    <ul>
+      <li>
+        <span class="parameter">K<sub>p</sub></span>: The proportional gain. This gain is multiplied by error to generate the proportional term. The greater the error, the larger the applied current. As you approach the desired position, the current due to the proportional term decreases.
+      </li>
+      <li>
+        <span class="parameter">K<sub>i</sub></span>: The integral gain. This gain is multiplied by the integral of the error over a time period. This term helps reduce steady state error.  If there is a persistent error, this term will increase over time, creating a greater current to be applied.
+      </li>
+      <li>
+        <span class="parameter">K<sub>d</sub></span>: The derivative gain.  This gain is multiplied by the derivative of the error with respect to time.  This term can improve response time of the controller as rapid changes in error increase the magnitude of this term.
+      Desired angle (<span class="variable">&Theta;<sub>R</sub></span>): The reference angle the arm is trying to reach (in degrees).
+      </li>
+    </ul>
   </body>
 </html>

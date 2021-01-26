@@ -46,6 +46,26 @@ class SystemModel:
     def update_arm_inertia(self):
         self.J_a = 1/3 * self.M_a * np.square(self.L_a) # Arm Moment of inertia
         
+    def update_K_t(self, K_t):
+        self.K_t = K_t
+        return self.K_t
+    
+    def update_B_v(self, B_v):
+        self.B_v = B_v
+        return self.B_v
+    
+    def update_B_s(self, B_s):
+        self.B_s = B_s
+        return self.B_s
+    
+    def update_J_m(self, J_m):
+        self.J_m = J_m
+        return self.J_m
+    
+    def update_timestep(self, timestep):
+        self.timestep = timestep
+        return self.timestep
+        
     def model(self, thetas, t, i):
         theta = thetas[0]
         theta_dot = thetas[1]
@@ -63,17 +83,6 @@ class SystemModel:
         
         if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
             self.time_prev = self.time - self.timestep        
-        
-        # print(self.theta)
-        # print(self.d_theta)
-        # print(self.dd_theta)
-        # print(self.K_t * i )
-        # print((self.J_m + self.J_a) * self.dd_theta[0])
-        # print(self.B_v * self.d_theta[0])
-        # print(np.sign(self.d_theta[0]) * self.B_s)
-        # print(self.M_a * self.L_a * G)
-        # print()
-        # input("Press Enter to continue...")
         
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # take one step using the current values
@@ -119,6 +128,15 @@ class OpenLoopControl:
         self.current_cmd = 0
         self.model = model
         self.start_run = False
+        
+    def update_current_cmd(self, cmd):
+        self.current_cmd = cmd
+        return self.current_cmd
+    
+    def update_time_to_run(self, time_to_run):
+        self.time_to_run = time_to_run
+        return self.time_to_run
+        
     def step_control(self, time_to_run = None, current_cmd = None):
         if self.start_run : # if we are starting a new run record the start time and reset the flag
             # update current and time command from gui
@@ -179,6 +197,18 @@ class ClosedLoopControl:
     def update_angle_ref(self, angle):
         self.angle_ref = np.deg2rad(angle)
         return self.angle_ref
+    
+    def update_kp(self, kp):
+        self.kp = kp
+        return self.kp
+    
+    def update_ki(self, ki):
+        self.ki = ki
+        return self.ki
+    
+    def update_kd(self, kd):
+        self.kd = kd
+        return self.kd
         
     def step_control(self):
         
