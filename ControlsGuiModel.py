@@ -2,8 +2,14 @@
 import numpy as np
 import time
 from scipy.integrate import odeint
+import os
+from datetime import datetime
 
-G = 9.81 # Gravitational constant    
+G = 9.81 # Gravitational constant  
+SAVE_DIR = os.path.join(os.path.dirname(__file__), 'logs') # we want to store the files in the same place this file lives in a directory called logs
+print(SAVE_DIR)
+if not os.path.exists(SAVE_DIR): # check if the directory exists
+    os.makedirs(SAVE_DIR) # if it doesn't exist create it.
     
 class SystemModel:
     
@@ -15,6 +21,7 @@ class SystemModel:
         self.time = 0 # current time of the model
         self.timestep = .001 # default time step size.
         self.time_prev = 0 # record time of last call
+        self.time_diff = 0 # record the difference between call times,  this is just used for logging.
         # motor parameters
         self.K_t = 0.0 # Torque constant
         self.B_v = 0.0 # Coefficient of viscous friction
@@ -28,6 +35,8 @@ class SystemModel:
         self.update_arm_inertia() # updates the arm moment of inertia based on M_a and L_a
     
         self.use_grav = 0
+        self.should_log = True
+        self.current_applied = 0 
         
     def reset(self):
         self.theta = [0, 0, 0] # Motor angle
@@ -80,6 +89,7 @@ class SystemModel:
         # i is the current command
         #self.time = self.time + self.timestep # increment the time
         self.time = time.monotonic();
+        self.current_applied = i 
         
         if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
             self.time_prev = self.time - self.timestep        
@@ -127,7 +137,14 @@ class OpenLoopControl:
         self.time_elapsed = 0
         self.current_cmd = 0
         self.model = model
+        
         self.start_run = False
+        self.log_name = 'temp.csv'
+        self.model_labels = ['time', 'time_prev', 'time_diff', 'theta', 'd_theta', 'dd_theta', 'current_applied', \
+                            'K_t', 'B_s', 'B_v', 'J_m', 'M_a', 'L_a','J_a', 'use_grav']
+        self.controller_labels = ['time_to_run', 'start_time', 'time_elapsed', 'current_cmd']
+        self.data_file = '' # want something to store the file object, this is a quick way of doing it where it gets changed later, which isn't great but is quick.
+        
         
     def update_current_cmd(self, cmd):
         self.current_cmd = cmd
@@ -144,6 +161,7 @@ class OpenLoopControl:
             #self.current_cmd = current_cmd
             self.start_time = time.monotonic()
             self.start_run = False
+            #self.create_log()
         step_start_time = time.monotonic() # record the time we are starting the step
         if self.time_to_run > step_start_time - self.start_time : # if we haven't gone past the time_to_run wait a timestep then step the model to help slow down the display.  This will be a bit slower than the actual time but should be good enough for this.  The order should help a bit.
             self.model.step_model(self.current_cmd) # step the model
@@ -152,6 +170,7 @@ class OpenLoopControl:
         else : # if we have run the current command for the full time, send 0 current till a new run is started.
             self.model.step_model(0) # step the model
             
+        #self.log_data()    
         return self.model.theta[0]
         
     def step_control_internal_timer(self, time_to_run = None, current_cmd = None):
@@ -173,7 +192,54 @@ class OpenLoopControl:
             self.model.step_model(0) # step the model
             while time_cur - step_start_time < self.model.timestep :    # wait till we get past the timestep.
                 time_cur = time.monotonic()
+                
+        # this method of tracking time isn't great because it doesn't align with the model calls but should be functional.  
+        self.model.time_diff = self.model.time - self.model.time_prev        
         return self.model.theta[0]
+    
+    def create_log(self):
+        start_time = datetime.now()
+        time_str = start_time.strftime("%Y_%m_%d_%Hh%Mm%Ss")
+        control_type = '_open_loop'
+        
+        # you need to initilize these before calling these
+        file_base = time_str + control_type
+        file_extension = '.csv'
+        
+        self.log_name = os.path.join(SAVE_DIR, file_base + file_extension)
+        
+        self.data_file = open(self.log_name, 'a')
+        
+        labels_csv = ""
+        for label in self.model_labels :
+            labels_csv += label + ", "
+        for label in self.controller_labels:
+            labels_csv += label + ", "
+        labels_csv = labels_csv[:-2] # remove the final coma and space
+        self.data_file.write(labels_csv)
+        self.data_file.write("\n ")
+        #print('wrote ' + str(self.log_name) + ': \n' + labels_csv)
+        
+    def log_data(self):
+        data_csv = '';
+        for label in self.model_labels :
+            #print(label + ' = ' + str(getattr(self.model, label )))
+            attribute_data = getattr(self.model, label)
+            if type(attribute_data) is list: 
+                attribute_data = attribute_data[0]
+            data_csv += str(attribute_data) + ', '
+        for label in self.controller_labels:
+            attribute_data = getattr(self, label)
+            if type(attribute_data) is list: 
+                attribute_data = attribute_data[0]
+            data_csv += str(attribute_data) + ', '
+        data_csv = data_csv[:-2] # remove the final coma and space
+        self.data_file.write(data_csv)
+        self.data_file.write("\n ")
+        #print('wrote ' + str(self.log_name) + ': \n' + data_csv)
+    
+    def close_log(self):
+        self.data_file.close()
 
 class ClosedLoopControl:
     def __init__(self, model):
@@ -193,6 +259,13 @@ class ClosedLoopControl:
         self.current_cmd = 0
         
         self.model = model
+        
+        self.log_name = 'temp.csv'
+        self.model_labels = ['time', 'time_prev', 'time_diff', 'theta', 'd_theta', 'dd_theta', 'current_applied',\
+                            'K_t', 'B_s', 'B_v', 'J_m', 'M_a', 'L_a','J_a', 'use_grav']
+        self.controller_labels = ['kp', 'ki', 'kd', 'error_sum', 'e_prev', 'angle_ref', 'current_cmd']
+        self.data_file = '' # want something to store the file object, this is a quick way of doing it where it gets changed later, which isn't great but is quick.
+        
         
     def update_angle_ref(self, angle):
         self.angle_ref = np.deg2rad(angle)
@@ -216,8 +289,9 @@ class ClosedLoopControl:
         
         if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
             self.time_prev = self.time - self.model.timestep    
+            #self.create_log()
         # this method of tracking time isn't great because it doesn't align with the model calls but should be functional.  
-        time_between_calls = self.time - self.time_prev
+        self.model.time_diff = self.time - self.time_prev
         
         # step_start_time = time.monotonic() # record the time we are starting the step
         # time_cur = time.monotonic() # record the time we are starting
@@ -225,10 +299,11 @@ class ClosedLoopControl:
         # print(self.time_prev, self.model.timestep, self.model.theta[0])
         self.error_sum = self.error_sum + e # we will multiply by the timestep later and assume they are all equal
         self.current_cmd = -1 * (self.kp * e +\
-                            self.ki * self.error_sum * time_between_calls +\
-                            self.kd * (e - self.e_prev) / time_between_calls) 
+                            self.ki * self.error_sum * self.model.time_diff +\
+                            self.kd * (e - self.e_prev) / self.model.time_diff) 
         self.e_prev = e # store the current error for the next run
         self.model.step_model(self.current_cmd) # step the model
+        #self.log_data()
         
         return self.model.theta[0]    
         
@@ -249,3 +324,47 @@ class ClosedLoopControl:
         
     def reset_int(self):
         self.error_sum = 0
+        
+    def create_log(self):
+        start_time = datetime.now()
+        time_str = start_time.strftime("%Y_%m_%d_%Hh%Mm%Ss")
+        control_type = '_closed_loop'
+        
+        # you need to initilize these before calling these
+        file_base = time_str + control_type
+        file_extension = '.csv'
+        
+        self.log_name = os.path.join(SAVE_DIR, file_base + file_extension)
+        
+        self.data_file = open(self.log_name, 'a')
+        
+        labels_csv = ""
+        for label in self.model_labels :
+            labels_csv += label + ", "
+        for label in self.controller_labels:
+            labels_csv += label + ", "
+        labels_csv = labels_csv[:-2] # remove the final coma and space
+        self.data_file.write(labels_csv)
+        self.data_file.write("\n ")
+        #print('wrote ' + str(self.log_name) + ': \n' + labels_csv)
+        
+    def log_data(self):
+        data_csv = '';
+        for label in self.model_labels :
+            #print(label + ' = ' + str(getattr(self.model, label )))
+            attribute_data = getattr(self.model, label)
+            if type(attribute_data) is list: 
+                attribute_data = attribute_data[0]
+            data_csv += str(attribute_data) + ', '
+        for label in self.controller_labels:
+            attribute_data = getattr(self, label)
+            if type(attribute_data) is list: 
+                attribute_data = attribute_data[0]
+            data_csv += str(attribute_data) + ', '
+        data_csv = data_csv[:-2] # remove the final coma and space
+        self.data_file.write(data_csv)
+        self.data_file.write("\n ")
+        #print('wrote ' + str(self.log_name) + ': \n' + data_csv)
+        
+    def close_log(self):
+        self.data_file.close()

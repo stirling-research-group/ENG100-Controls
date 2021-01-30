@@ -169,6 +169,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             button.setText('Stop')
             self.SetMotorValues()
             # button.setStyleSheet('background-color: #d32f2f')
+            
             Animations.StartAnimation(self)
         else:
             button.setText('Start')
@@ -207,6 +208,11 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             ax = figure.get_axes()[0]
             ax.set_title('Open Loop')
             step_control = self.open_loop.step_control(i)
+            
+            # Logging 
+            if self.open_loop.model.should_log:
+                self.open_loop.log_data()
+                
             self.model_time.append(time.monotonic() - self.start_time)
             self.angle.append(step_control)
             angle_deg = np.rad2deg(self.angle)
@@ -220,6 +226,11 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             figure.canvas.draw()
             Animations.RotateMotorArm(self, angle_deg[-1])
             return self.line,
+            
+        # Logging 
+        if self.open_loop.model.should_log:
+            self.open_loop.close_log()
+            
         self.openLoopAnimation.event_source.stop()
         
     def ClosedLoopAnimate(self, i):
@@ -229,6 +240,11 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         """
         while self.closedRun == True:
             step_control = self.closed_loop.step_control()
+            
+            # Logging 
+            if self.closed_loop.model.should_log:
+                self.closed_loop.log_data()
+                
             figure = self.scrollPlot.figure
             ax = figure.get_axes()[0]
             ax.set_title('Closed Loop')
@@ -246,6 +262,11 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             figure.canvas.draw()
             Animations.RotateMotorArm(self, angle_deg[-1])
             return self.line,
+        
+        # Logging 
+        if self.closed_loop.model.should_log:
+            self.closed_loop.close_log()
+            
         self.closedLoopAnimation.event_source.stop()
     
 class MotorArm:
@@ -416,6 +437,10 @@ class Animations:
         self.SetOpenLoopProperties()
         self.open_loop.start_run = True # flag used to set timer will be set to false on first call to open_loop.step_control.  
         
+        # Logging init
+        if self.open_loop.model.should_log:
+            self.open_loop.create_log()
+        
         figure = self.scrollPlot.figure
         figure.clear()
         ax = figure.add_subplot(111)
@@ -435,6 +460,10 @@ class Animations:
         """
         self.SetArmProperties()
         self.SetPIDProperties()
+        
+        # Logging init
+        if self.closed_loop.model.should_log:
+            self.closed_loop.create_log()
         
         self.motor.use_grav = self.gravitySetting  # 0 for no gravity 1 for with gravity
         figure = self.scrollPlot.figure
