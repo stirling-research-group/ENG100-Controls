@@ -1,5 +1,24 @@
-* {
+QMainWindow,
+QDialog,
+QGroupBox,
+QTabWidget::tab,
+QTabBar::tab,
+QTabWidget::pane > QWidget{
     background-color: #CFD8DC;
+}
+QTabBar::tab
+{
+    padding: 5px;
+    border: 1px solid #fff;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom: none;
+}
+QTabWidget::pane {
+    border: 1px solid #fff;
+}
+QTabBar::tab::selected {
+    background-color: #ffffff;
 }
 QPushButton {
     color: #fff;
@@ -21,13 +40,12 @@ QSpinBox::hover,
 QDoubleSpinBox,
 QDoubleSpinBox::hover,
 QDoubleSpinBox::active,
-QDoubleSpinBox::focus,
-QDoubleSpinBox::enter {
-    font-size: 16px;
+QDoubleSpinBox::focus {
     padding: 5px;
+    font-size: 16px;
     background-color: #ffffff;
 }
 QDoubleSpinBox::down-button,
 QDoubleSpinBox::up-button {
-
+    
 }

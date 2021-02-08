@@ -6,12 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>986</width>
-    <height>893</height>
+    <width>1070</width>
+    <height>927</height>
    </rect>
   </property>
   <property name="font">
    <font>
+    <family>Yu Gothic UI Semibold</family>
     <pointsize>10</pointsize>
     <weight>50</weight>
     <bold>false</bold>
@@ -23,6 +24,9 @@
   <property name="windowIcon">
    <iconset>
     <normaloff>favicon.png</normaloff>favicon.png</iconset>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -53,11 +57,37 @@
         <number>0</number>
        </property>
        <item>
+        <widget class="QFrame" name="DebugFrame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_29">
+            <property name="text">
+             <string>Decimal Precision Increase:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="DecimalPrecision">
+            <property name="value">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="MotorArmDetails">
          <property name="font">
           <font>
-           <family>Yu Gothic UI Semibold</family>
-           <pointsize>10</pointsize>
+           <family>Tw Cen MT</family>
+           <pointsize>12</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -66,11 +96,20 @@
           <bool>false</bool>
          </property>
          <property name="title">
-          <string>Motor Arm:</string>
+          <string>MOTOR ARM:</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <widget class="QTabWidget" name="MotorArmTabWidget">
+            <property name="font">
+             <font>
+              <family>Yu Gothic UI Semibold</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
@@ -79,6 +118,9 @@
             </property>
             <property name="currentIndex">
              <number>0</number>
+            </property>
+            <property name="tabBarAutoHide">
+             <bool>false</bool>
             </property>
             <widget class="QWidget" name="ArmPropertiesTab">
              <property name="autoFillBackground">
@@ -112,21 +154,11 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QDoubleSpinBox" name="massInput">
-                <property name="maximum">
-                 <double>999.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.050000000000000</double>
-                </property>
-                <property name="value">
-                 <double>0.250000000000000</double>
-                </property>
-               </widget>
-              </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="lengthInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -143,6 +175,9 @@
               </item>
               <item row="2" column="1">
                <widget class="QDoubleSpinBox" name="angleInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>0</number>
                 </property>
@@ -235,6 +270,22 @@
                 </property>
                </widget>
               </item>
+              <item row="0" column="1">
+               <widget class="QDoubleSpinBox" name="massInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.050000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.250000000000000</double>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
             <widget class="QWidget" name="MotorPropertiesTab">
@@ -302,6 +353,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="bsInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>4</number>
                 </property>
@@ -318,6 +372,9 @@
               </item>
               <item row="3" column="1">
                <widget class="QDoubleSpinBox" name="jmInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>5</number>
                 </property>
@@ -334,6 +391,9 @@
               </item>
               <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="kiInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -350,6 +410,9 @@
               </item>
               <item row="2" column="1">
                <widget class="QDoubleSpinBox" name="bvInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -425,6 +488,9 @@
              <layout class="QGridLayout" name="gridLayout_7">
               <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="timestepInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -458,6 +524,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="startAngleInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>0</number>
                 </property>
@@ -509,13 +578,17 @@
         <widget class="QGroupBox" name="GravityDetails">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <family>Tw Cen MT</family>
+           <pointsize>12</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
          <property name="title">
-          <string>Gravity:</string>
+          <string>GRAVITY:</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="1">
@@ -525,6 +598,12 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Yu Gothic UI Semibold</family>
+              <pointsize>10</pointsize>
+             </font>
             </property>
             <property name="text">
              <string>Off</string>
@@ -538,6 +617,12 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Yu Gothic UI Semibold</family>
+              <pointsize>10</pointsize>
+             </font>
             </property>
             <property name="text">
              <string>On</string>
@@ -560,19 +645,38 @@
         <widget class="QGroupBox" name="ControlDetails">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <family>Tw Cen MT</family>
+           <pointsize>12</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
          <property name="title">
-          <string>Control:</string>
+          <string>CONTROL:</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QTabWidget" name="LoopControlTab">
+            <property name="font">
+             <font>
+              <family>Yu Gothic UI Semibold</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="currentIndex">
              <number>0</number>
+            </property>
+            <property name="elideMode">
+             <enum>Qt::ElideNone</enum>
+            </property>
+            <property name="usesScrollButtons">
+             <bool>true</bool>
+            </property>
+            <property name="documentMode">
+             <bool>false</bool>
             </property>
             <widget class="QWidget" name="OpenLoopTab">
              <attribute name="title">
@@ -597,6 +701,9 @@
               </item>
               <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="cmdInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="minimum">
                  <double>-50.000000000000000</double>
                 </property>
@@ -626,6 +733,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="timeInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="minimum">
                  <double>0.000000000000000</double>
                 </property>
@@ -704,6 +814,9 @@
               </item>
               <item row="0" column="1">
                <widget class="QDoubleSpinBox" name="pInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="maximum">
                  <double>999.000000000000000</double>
                 </property>
@@ -717,6 +830,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QDoubleSpinBox" name="iInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -746,6 +862,9 @@
               </item>
               <item row="2" column="1">
                <widget class="QDoubleSpinBox" name="dInput">
+                <property name="autoFillBackground">
+                 <bool>true</bool>
+                </property>
                 <property name="decimals">
                  <number>3</number>
                 </property>
@@ -887,8 +1006,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>986</width>
-     <height>21</height>
+     <width>1070</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWindow_Resize_Options">
@@ -908,9 +1027,17 @@
     </property>
     <addaction name="actionView_Details"/>
    </widget>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <addaction name="actionDebug_Mode"/>
+    <addaction name="actionLogging"/>
+   </widget>
    <addaction name="menuWindow_Resize_Options"/>
    <addaction name="menuHelp"/>
    <addaction name="menuAbout"/>
+   <addaction name="menuDebug"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionView_Help_Topics">
@@ -921,6 +1048,22 @@
   <action name="actionView_Details">
    <property name="text">
     <string>View Details</string>
+   </property>
+  </action>
+  <action name="actionDebug_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Debug Mode: Off</string>
+   </property>
+  </action>
+  <action name="actionLogging">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Logging: Off</string>
    </property>
   </action>
  </widget>

@@ -8,12 +8,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import HelpWindow
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import sys
 import time
-
-# helpDf = pd.read_csv('Documentation/inputDescriptions.txt', sep=" : ",
-#                      header=None, names=['Label', 'Text'], engine='python')
 
 # Load UI file (Created with QT Designer)
 windowUI = uic.loadUiType('MainWindow.ui')[0]
@@ -33,13 +29,13 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.ResetPlots.clicked.connect(self.ResetPlotsClicked)
         self.InitWindow()
         self.InitSpinboxes()
-        self.defaultVals = {'massInput': 0.25, 'lengthInput': 0.010,
-                            'angleInput': 45, 'kiInput': 0.136,
-                            'bsInput': 0.003, 'bvInput': 0.020,
-                            'jmInput': 0.00051, 'cmdInput': 0.30,
-                            'timeInput': 5.00, 'pInput': 0.50,
-                            'iInput': 0.05, 'dInput': 0.01,
-                            'timestepInput': 0.001, 'startAngleInput': 0}
+        self.defaultVals = {'massInput': [0.25, 2], 'lengthInput': [0.010, 3],
+                            'angleInput': [45, 0], 'kiInput': [0.136, 3],
+                            'bsInput': [0.003, 3], 'bvInput': [0.020, 3],
+                            'jmInput': [0.00051, 5], 'cmdInput': [0.30, 2],
+                            'timeInput': [5.00, 2], 'pInput': [0.50, 2],
+                            'iInput': [0.05, 2], 'dInput': [0.01, 2],
+                            'timestepInput': [0.001, 3], 'startAngleInput': [0, 0]}
         
     def InitWindow(self):
         """
@@ -47,8 +43,12 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         """
         # init UI components
         self.setWindowTitle('Open and Closed Loop Control Demo')
-        self.actionView_Help_Topics.triggered.connect(lambda: MenuWindows.OpenWindow(self))
+        self.actionView_Help_Topics.triggered.connect(lambda: MenuWindows.OpenHelpWindow(self))
         self.actionView_Details.triggered.connect(lambda: MenuWindows.OpenAboutDialog(self))
+        self.actionDebug_Mode.triggered.connect(lambda: MenuWindows.ToggleDebugMode(self))
+        # self.actionLogging.triggered.connect(lambda: MenuWindows.ToggleLogging(self))
+        self.DecimalPrecision.valueChanged.connect(lambda precisionIncrease: MenuWindows.UpdateDecimalPrecision(self, precisionIncrease))
+        self.DebugFrame.hide()
         self.InitPlots()
         self.GravityOn.toggled.connect(lambda: MotorArm.UpdateGravity(self))
         # init model
@@ -156,6 +156,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         closed loop properties
         """
         self.motor.reset()
+        self.motor.should_log = MenuWindows.ToggleLogging(self)
         self.SetMotorProperties()
         self.SetArmProperties()
         self.SetGravityProperties()
@@ -168,18 +169,15 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         if button.isChecked():
             button.setText('Stop')
             self.SetMotorValues()
-            # button.setStyleSheet('background-color: #d32f2f')
-            
             Animations.StartAnimation(self)
         else:
             button.setText('Start')
-            # button.setStyleSheet('background-color: #009688')
             Animations.StopAnimation(self)
             
     def ResetDefaultValues(self):
         for key, value in self.defaultVals.items():
             spinbox = self.RightPanel.findChild(QtWidgets.QDoubleSpinBox, key)
-            spinbox.setValue(value)
+            spinbox.setValue(value[0])
             
     def ResetPlotsClicked(self):
         """
@@ -209,8 +207,8 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             ax.set_title('Open Loop')
             step_control = self.open_loop.step_control(i)
             
-            # Logging 
-            if self.open_loop.model.should_log:
+            # # Logging 
+            if self.motor.should_log:
                 self.open_loop.log_data()
                 
             self.model_time.append(time.monotonic() - self.start_time)
@@ -228,7 +226,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             return self.line,
             
         # Logging 
-        if self.open_loop.model.should_log:
+        if self.motor.should_log:
             self.open_loop.close_log()
             
         self.openLoopAnimation.event_source.stop()
@@ -242,7 +240,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             step_control = self.closed_loop.step_control()
             
             # Logging 
-            if self.closed_loop.model.should_log:
+            if self.motor.should_log:
                 self.closed_loop.log_data()
                 
             figure = self.scrollPlot.figure
@@ -264,7 +262,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             return self.line,
         
         # Logging 
-        if self.closed_loop.model.should_log:
+        if self.motor.should_log:
             self.closed_loop.close_log()
             
         self.closedLoopAnimation.event_source.stop()
@@ -423,7 +421,6 @@ class Animations:
         ax = figure.get_axes()[0]
         startAngle = self.startAngleInput.value()
         updatedAngle = angleDeg + startAngle
-        # angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, angleDeg) + ax.transData
         angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, updatedAngle) + ax.transData
         self.motorArm.set_transform(angleRotate)
         self.angleText = MotorArm.PlotAngleText(self, angleDeg, figure, ax)
@@ -438,7 +435,7 @@ class Animations:
         self.open_loop.start_run = True # flag used to set timer will be set to false on first call to open_loop.step_control.  
         
         # Logging init
-        if self.open_loop.model.should_log:
+        if self.motor.should_log:
             self.open_loop.create_log()
         
         figure = self.scrollPlot.figure
@@ -462,7 +459,7 @@ class Animations:
         self.SetPIDProperties()
         
         # Logging init
-        if self.closed_loop.model.should_log:
+        if self.motor.should_log:
             self.closed_loop.create_log()
         
         self.motor.use_grav = self.gravitySetting  # 0 for no gravity 1 for with gravity
@@ -485,27 +482,65 @@ class MenuWindows:
         Opens Help Window
         """
         self._subWindow = HelpWindow.HelpWindowObject()
-        HelpWindow.HelpWindowObject.LoadHTML(self._subWindow, 'help_files/Overview.html')
+        HelpWindow.HelpWindowObject.LoadHTML(self._subWindow, 'Overview.html')
         self._subWindow.show()
         self._subWindow.setWindowState(self._subWindow.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         self._subWindow.activateWindow()
         
     def OpenAboutDialog(self):
-        aboutDialog = AboutDialog()
-        aboutDialog.exec_()
+        # aboutDialog = AboutDialog()
+        # aboutDialog.exec_()
+        self._subWindow = AboutDialog()
+        self._subWindow.show()
+        self._subWindow.activateWindow()
         
-class AboutDialog(QtWidgets.QDialog):
+    def ToggleDebugMode(self):
+        """
+        Toggles debug mode off/on
+        """
+        link = self.actionDebug_Mode
+        if link.isChecked():
+            link.setText('Debug Mode: On')
+            self.DebugFrame.show()
+            self.DecimalPrecision.setValue(1)
+        else:
+            self.DebugFrame.hide()
+            link.setText('Debug Mode: Off')
+            MenuWindows.UpdateDecimalPrecision(self, 0)
+            
+            
+    def UpdateDecimalPrecision(self, precisionIncrease):
+        for key, value in self.defaultVals.items():
+            spinbox = self.RightPanel.findChild(QtWidgets.QDoubleSpinBox, key)
+            currentDecimals = value[1]
+            spinbox.setDecimals(currentDecimals + precisionIncrease)
+            
+    def ToggleLogging(self):
+        """
+        Toggles logging off/on
+        """
+        link = self.actionLogging
+        if link.isChecked():
+            link.setText('Logging: On')
+            self.motor.should_log = True
+        else:
+            link.setText('Logging: Off')
+            self.motor.should_log = False
+        return self.motor.should_log
+            
+about_window = uic.loadUiType('AboutWindow.ui')[0]        
+class AboutDialog(QtWidgets.QDialog, about_window):
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """
         Creates About Window
         """
-        super(AboutDialog, self).__init__()
-        # Load UI file (Created with QT Designer)
-        uic.loadUiType('AboutWindow.ui', self)
+        QtWidgets.QDialog.__init__(self, parent)
+        self.setupUi(self)
         self.setWindowTitle('About')
-
-    
+        stylesheetFile = 'Styling.qss'
+        with open(stylesheetFile, 'r') as styleSheet:
+            self.setStyleSheet(styleSheet.read())
         
 app = QtWidgets.QApplication(sys.argv)
 mainWindow = EngWindow()

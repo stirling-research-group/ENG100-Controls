@@ -7,7 +7,7 @@ from datetime import datetime
 
 G = 9.81 # Gravitational constant  
 SAVE_DIR = os.path.join(os.path.dirname(__file__), 'logs') # we want to store the files in the same place this file lives in a directory called logs
-print(SAVE_DIR)
+# print(SAVE_DIR)
 if not os.path.exists(SAVE_DIR): # check if the directory exists
     os.makedirs(SAVE_DIR) # if it doesn't exist create it.
     
@@ -35,7 +35,7 @@ class SystemModel:
         self.update_arm_inertia() # updates the arm moment of inertia based on M_a and L_a
     
         self.use_grav = 0
-        self.should_log = True
+        self.should_log = False
         self.current_applied = 0 
         
     def reset(self):
@@ -74,6 +74,11 @@ class SystemModel:
     def update_timestep(self, timestep):
         self.timestep = timestep
         return self.timestep
+    
+    def update_logging(self, logOption):
+        self.should_log = logOption
+        print(self.should_log)
+        return self.should_log
         
     def model(self, thetas, t, i):
         theta = thetas[0]
