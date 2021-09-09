@@ -2,11 +2,15 @@
 import numpy as np
 import time
 from scipy.integrate import odeint
-import os
+import os, sys
 from datetime import datetime
 
 G = 9.81 # Gravitational constant  
-SAVE_DIR = os.path.join(os.path.dirname(__file__), 'logs') # we want to store the files in the same place this file lives in a directory called logs
+if getattr(sys, 'frozen', False):
+    # frozen
+    SAVE_DIR = os.path.join(os.path.dirname(sys.executable), 'logs')
+else:
+    SAVE_DIR = os.path.join(os.path.dirname(__file__), 'logs') # we want to store the files in the same place this file lives in a directory called logs
 # print(SAVE_DIR)
 if not os.path.exists(SAVE_DIR): # check if the directory exists
     os.makedirs(SAVE_DIR) # if it doesn't exist create it.
@@ -14,7 +18,7 @@ if not os.path.exists(SAVE_DIR): # check if the directory exists
 class SystemModel:
     
     def __init__(self):
-        self.theta = [0]*3 #[np.pi/2]*3 #[0, 0, 0] # Motor angle
+        self.theta_rad = [0]*3 #[np.pi/2]*3 #[0, 0, 0] # Motor angle
         self.d_theta = [0, 0] # Motor velocity
         self.dd_theta = [0] # Motor acceleration
 
@@ -39,7 +43,7 @@ class SystemModel:
         self.current_applied = 0 
         
     def reset(self):
-        self.theta = [0, 0, 0] # Motor angle
+        self.theta_rad = [0, 0, 0] # Motor angle
         self.d_theta = [0, 0] # Motor velocity
         self.dd_theta = [0] # Motor acceleration
         self.time_prev = 0
@@ -92,8 +96,8 @@ class SystemModel:
     
     def step_model (self, i):
         # i is the current command
-        #self.time = self.time + self.timestep # increment the time
-        self.time = time.monotonic();
+        self.time = self.time + self.timestep # increment the time
+        #self.time = time.monotonic();
         self.current_applied = i 
         
         if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
@@ -111,7 +115,7 @@ class SystemModel:
         
         ##============================================================
         # Using odeint
-        sol = odeint(self.model, [self.theta[0], self.d_theta[0]], [0, self.time - self.time_prev],  args = (i,))
+        sol = odeint(self.model, [self.theta_rad[0], self.d_theta[0]], [0, self.time - self.time_prev],  args = (i,))
         
         theta_current = sol[-1,0]
         d_theta_current = sol[-1,1]
@@ -121,8 +125,8 @@ class SystemModel:
         ##============================================================
         
         #theta_current = np.arccos((self.K_t * i - (self.J_m + self.J_a) * self.dd_theta[0] - self.B_v * self.d_theta[0] - np.sign(self.d_theta[0]) * self.B_s) / (self.M_a * self.L_a * G))
-        self.theta.insert(0,theta_current) # add the updated value to the front of the list
-        self.theta.pop(-1) # remove the last value so the list stays the same size
+        self.theta_rad.insert(0,theta_current) # add the updated value to the front of the list
+        self.theta_rad.pop(-1) # remove the last value so the list stays the same size
         # update the velocity and acceleration
         
         #d_theta_current = (self.theta[1] - self.theta[0]) / self.timestep
@@ -133,7 +137,7 @@ class SystemModel:
         # self.dd_theta.insert(0,dd_theta_current) # add the updated value to the front of the list
         # self.dd_theta.pop(-1) # remove the last value so the list stays the same size
         
-        return self.theta
+        return self.theta_rad
     
 class OpenLoopControl:
     def __init__(self, model):
@@ -142,12 +146,13 @@ class OpenLoopControl:
         self.time_elapsed = 0
         self.current_cmd = 0
         self.model = model
+        self.time_prev = 0
         
         self.start_run = False
         self.log_name = 'temp.csv'
-        self.model_labels = ['time', 'time_prev', 'time_diff', 'theta', 'd_theta', 'dd_theta', 'current_applied', \
+        self.model_labels = ['time', 'time_diff', 'theta_rad', 'd_theta', 'dd_theta', 'current_applied', \
                             'K_t', 'B_s', 'B_v', 'J_m', 'M_a', 'L_a','J_a', 'use_grav']
-        self.controller_labels = ['time_to_run', 'start_time', 'time_elapsed', 'current_cmd']
+        self.controller_labels = ['time_prev', 'time_to_run', 'start_time', 'time_elapsed', 'current_cmd']
         self.data_file = '' # want something to store the file object, this is a quick way of doing it where it gets changed later, which isn't great but is quick.
         
         
@@ -160,47 +165,32 @@ class OpenLoopControl:
         return self.time_to_run
         
     def step_control(self, time_to_run = None, current_cmd = None):
+        # print('step_control: ', self.model.time)
         if self.start_run : # if we are starting a new run record the start time and reset the flag
             # update current and time command from gui
             #self.time_to_run = time_to_run
             #self.current_cmd = current_cmd
-            self.start_time = time.monotonic()
+            #self.start_time = time.monotonic()
             self.start_run = False
             #self.create_log()
-        step_start_time = time.monotonic() # record the time we are starting the step
-        if self.time_to_run > step_start_time - self.start_time : # if we haven't gone past the time_to_run wait a timestep then step the model to help slow down the display.  This will be a bit slower than the actual time but should be good enough for this.  The order should help a bit.
+        # step_start_time = time.monotonic() # record the time we are starting the step
+        # if self.time_to_run > step_start_time - self.start_time : # if we haven't gone past the time_to_run wait a timestep then step the model to help slow down the display.  This will be a bit slower than the actual time but should be good enough for this.  The order should help a bit.
+        # print(self.time_to_run, self.model.timestep, self.model.time)
+        if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
+            self.time_prev = self.model.time - self.model.timestep    
+        self.model.time_diff = self.model.time - self.time_prev
+        # # Logging 
+        if self.model.should_log:
+            self.log_data()
+        self.time_prev = self.model.time #record previous time
+        if self.time_to_run > self.model.time :
             self.model.step_model(self.current_cmd) # step the model
             
             
         else : # if we have run the current command for the full time, send 0 current till a new run is started.
             self.model.step_model(0) # step the model
-            
         #self.log_data()    
-        return self.model.theta[0]
-        
-    def step_control_internal_timer(self, time_to_run = None, current_cmd = None):
-        if self.start_run : # if we are starting a new run record the start time and reset the flag
-            # update current and time command from gui
-            #self.time_to_run = time_to_run
-            #self.current_cmd = current_cmd
-            self.start_time = time.monotonic()
-            self.start_run = False
-        step_start_time = time.monotonic() # record the time we are starting the step
-        if self.time_to_run > step_start_time - self.start_time : # if we haven't gone past the time_to_run wait a timestep then step the model to help slow down the display.  This will be a bit slower than the actual time but should be good enough for this.  The order should help a bit.
-            time_cur = time.monotonic() # record the time we are starting
-            self.model.step_model(self.current_cmd) # step the model
-            while time_cur - step_start_time < self.model.timestep :    # wait till we get past the timestep.
-                time_cur = time.monotonic()
-            
-        else : # if we have run the current command for the full time, send 0 current till a new run is started.
-            time_cur = time.monotonic() # record the time we are starting
-            self.model.step_model(0) # step the model
-            while time_cur - step_start_time < self.model.timestep :    # wait till we get past the timestep.
-                time_cur = time.monotonic()
-                
-        # this method of tracking time isn't great because it doesn't align with the model calls but should be functional.  
-        self.model.time_diff = self.model.time - self.model.time_prev        
-        return self.model.theta[0]
+        return self.model.theta_rad[0]
     
     def create_log(self):
         start_time = datetime.now()
@@ -255,20 +245,22 @@ class ClosedLoopControl:
         
         self.time = 0 # current time of the model
         self.time_prev = 0 # record time of last call
+        self.e_der = 0
+        self.e = 0 #this version of the variable isn't used in calculations, just logging
         
         self.error_sum = 0 # integral term
-        self.e_prev = 0 # stores the previous error for derivative term
         
         self.angle_ref = 0 # reference (desired) angle
         
         self.current_cmd = 0
         
         self.model = model
+        self.e_prev = self.angle_ref - self.model.theta_rad[0] # stores the previous error for derivative term
         
         self.log_name = 'temp.csv'
-        self.model_labels = ['time', 'time_prev', 'time_diff', 'theta', 'd_theta', 'dd_theta', 'current_applied',\
+        self.model_labels = ['time', 'time_diff', 'theta_rad', 'd_theta', 'dd_theta', 'current_applied',\
                             'K_t', 'B_s', 'B_v', 'J_m', 'M_a', 'L_a','J_a', 'use_grav']
-        self.controller_labels = ['kp', 'ki', 'kd', 'error_sum', 'e_prev', 'angle_ref', 'current_cmd']
+        self.controller_labels = ['time_prev', 'kp', 'ki', 'kd', 'error_sum', 'e', 'e_prev', 'angle_ref', 'current_cmd']
         self.data_file = '' # want something to store the file object, this is a quick way of doing it where it gets changed later, which isn't great but is quick.
         
         
@@ -290,42 +282,40 @@ class ClosedLoopControl:
         
     def step_control(self):
         
-        self.time = time.monotonic();
+        # self.time = time.monotonic();
+        self.time = self.model.time
+        # print('step_control: ', self.model.time)
         
         if self.time_prev == 0 : # if we haven't run it before just pretend the last time was one timestep back.
-            self.time_prev = self.time - self.model.timestep    
+            self.time_prev = self.time - self.model.timestep
+        # print(self.e_prev)
+        if self.time == 0:
+            self.e_prev = self.angle_ref - self.model.theta_rad[0]
             #self.create_log()
         # this method of tracking time isn't great because it doesn't align with the model calls but should be functional.  
         self.model.time_diff = self.time - self.time_prev
+        # print(self.model.time, self.model.time_diff)
         
         # step_start_time = time.monotonic() # record the time we are starting the step
         # time_cur = time.monotonic() # record the time we are starting
-        e = self.model.theta[0] - self.angle_ref # error angle
-        # print(self.time_prev, self.model.timestep, self.model.theta[0])
-        self.error_sum = self.error_sum + e # we will multiply by the timestep later and assume they are all equal
-        self.current_cmd = -1 * (self.kp * e +\
-                            self.ki * self.error_sum * self.model.time_diff +\
-                            self.kd * (e - self.e_prev) / self.model.time_diff) 
+        e = self.angle_ref - self.model.theta_rad[0]# error angle
+        self.e = e #this is just for writing to the csv, it does not effect the equation
+        self.error_sum = self.error_sum + e * self.model.time_diff # we will multiply by the timestep later and assume they are all equal
+        self.e_der = (e - self.e_prev) / self.model.time_diff
+        self.current_cmd = (self.kp * e +\
+                            self.ki * self.error_sum +\
+                            self.kd * self.e_der)
+        # print('time_prev', self.time_prev, 'time: ', self.time, 'angle_ref: ', self.angle_ref, 'current_cmd: ', self.current_cmd, 'e: ', e, 'e_prev: ', self.e_prev)
+        # # Logging 
+        if self.model.should_log:
+            self.log_data()
         self.e_prev = e # store the current error for the next run
+        self.time_prev = self.time #record previous time
         self.model.step_model(self.current_cmd) # step the model
         #self.log_data()
         
-        return self.model.theta[0]    
-        
-    def step_control_internal_timer(self):
-        step_start_time = time.monotonic() # record the time we are starting the step
-        time_cur = time.monotonic() # record the time we are starting
-        e = self.model.theta[0] - self.angle_ref # error angle
-        self.error_sum = self.error_sum + e # we will multiply by the timestep later and assume they are all equal
-        self.current_cmd = self.kp * e +\
-                            self.ki * self.error_sum * self.model.timestep +\
-                            self.kd * (e - self.e_prev) / self.model.timestep
-        self.e_prev = e # store the current error for the next run
-        self.model.step_model(self.current_cmd) # step the model
-        while time_cur - step_start_time < self.model.timestep :    # wait till we get past the timestep this makes it close to realtime
-            time_cur = time.monotonic()
-        return self.model.theta[0]    
-        
+        return self.model.theta_rad[0] 
+ 
         
     def reset_int(self):
         self.error_sum = 0
@@ -356,7 +346,7 @@ class ClosedLoopControl:
     def log_data(self):
         data_csv = '';
         for label in self.model_labels :
-            #print(label + ' = ' + str(getattr(self.model, label )))
+            # print(label + ' = ' + str(getattr(self.model, label )))
             attribute_data = getattr(self.model, label)
             if type(attribute_data) is list: 
                 attribute_data = attribute_data[0]

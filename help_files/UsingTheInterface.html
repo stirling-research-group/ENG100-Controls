@@ -5,5 +5,41 @@
   </head>
   <body>
     <h1>Using the Interface</h1>
+    <img src="UserInterface.png" width="100%">
+    <ol>
+      <li>
+        <b>Motor Arm Plot:</b> Displays the motor arm angle changes over time once the simulation has started.
+      </li>
+      <li>
+        <b>Open/Closed Loop Plot:</b> Displays the loop angle output over time once the simulation has started. The title will change based on whether the Open or Closed Loop is selected. Below the Loop Plot is a toolbar that can be used to zoom, scroll, save, and change the plot display settings.
+      </li>
+      <li>
+        <b>Motor Arm Settings:</b> Contains settings for the Motor Arm Plot including Arm Properties, Motor Properties, and Simulation Properties. These settings will be used by both the Open and Closed Loop systems.
+      </li>
+      <li>
+        <b>Gravity Setting:</b> Turns gravity on or off. The Motor Arm Plot will display a "g" in the top right corner if gravity is on.
+      </li>
+      <li>
+        <b>Control Settings:</b> Contains the settings for the Open and Closed Loop systems.
+        <ul>
+          <li>Unlike the Motor Arm Settings, the settings in each tab will only be used for that system (for example: the settings in the "Closed" tab will only be used for the Closed Loop system).</li>
+          <li>To switch between systems, simply select the tab with the desired system. The Open/Closed Loop Plot will display the title of the currently selected system.</li>
+        </ul>
+      </li>
+      <li>
+        <b>Simulation buttons:</b>
+        <ul>
+          <li>
+            <b>Reset Plots:</b> After running a simulation, click this button to reset the plots to their original states. This button is disabled until a simulation has been run.
+          </li>
+          <li>
+            <b>Reset to Default Values:</b> Resets all inputs to their default values. The default values can be seen next to each input box.
+          </li>
+          <li>
+            <b>Start/Stop:</b> Starts and stops the simulation. Clicking "Start" will reset the plots to their original states before running the simulation.
+          </li>
+        </ul>
+      </li>
+    </ol>
   </body>
 </html>

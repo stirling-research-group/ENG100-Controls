@@ -32,10 +32,10 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.defaultVals = {'massInput': [0.25, 2], 'lengthInput': [0.010, 3],
                             'angleInput': [45, 0], 'kiInput': [0.136, 3],
                             'bsInput': [0.003, 3], 'bvInput': [0.020, 3],
-                            'jmInput': [0.00051, 5], 'cmdInput': [0.30, 2],
-                            'timeInput': [5.00, 2], 'pInput': [0.50, 2],
-                            'iInput': [0.05, 2], 'dInput': [0.01, 2],
-                            'timestepInput': [0.001, 3], 'startAngleInput': [0, 0]}
+                            'jmInput': [0.00051, 5], 'cmdInput': [0.300, 2],
+                            'timeInput': [2.00, 2], 'pInput': [1.00, 2],
+                            'iInput': [0.001, 2], 'dInput': [0.00001, 2],
+                            'timestepInput': [0.050, 3], 'startAngleInput': [0, 0]}
         
     def InitWindow(self):
         """
@@ -46,20 +46,24 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.actionView_Help_Topics.triggered.connect(lambda: MenuWindows.OpenHelpWindow(self))
         self.actionView_Details.triggered.connect(lambda: MenuWindows.OpenAboutDialog(self))
         self.actionDebug_Mode.triggered.connect(lambda: MenuWindows.ToggleDebugMode(self))
-        # self.actionLogging.triggered.connect(lambda: MenuWindows.ToggleLogging(self))
+        self.actionLogging.triggered.connect(lambda: MenuWindows.ToggleLogging(self))
         self.DecimalPrecision.valueChanged.connect(lambda precisionIncrease: MenuWindows.UpdateDecimalPrecision(self, precisionIncrease))
         self.DebugFrame.hide()
         self.InitPlots()
+        self.LoopControlTab.currentChanged.connect(self.SetLoopType)
         self.GravityOn.toggled.connect(lambda: MotorArm.UpdateGravity(self))
         # init model
+        self.loopType = 0
         self.openRun = False
         self.closedRun = False
         self.motor, self.open_loop, self.closed_loop = self.InitModel()
         self.SetMotorValues()
+        Animations.RotateMotorArm(self, 0)
         self.openLoopAnimation, self.closedLoopAnimation = Animations.InitAnimations(self)
         self.openLoopAnimation.event_source.stop()
         self.closedLoopAnimation.event_source.stop()
         self.StartStopSimulation.clicked.connect(self.ActivateStartStopButton)
+        self.LoopControlTab.setCurrentIndex(0)
         
     def InitPlots(self):
         """
@@ -102,9 +106,31 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         self.bvInput.valueChanged.connect(lambda bv: SystemModel.update_B_v(self.motor, bv))
         self.jmInput.valueChanged.connect(lambda jm: SystemModel.update_J_m(self.motor, jm))
         # simulation properties
-        self.timestepInput.valueChanged.connect(lambda time: SystemModel.update_timestep(self.motor, time))
+        self.timestepInput.valueChanged.connect(lambda timeValue: SystemModel.update_timestep(self.motor, timeValue))
         self.startAngleInput.valueChanged.connect(lambda: Animations.RotateMotorArm(self, 0))
         
+    def SetLoopType(self, index):
+        """
+        Sets the self.loopType variable based on the currently selected tab (open/closed)
+        """
+        self.loopType = index
+        self.SetLoopPlotProperties()
+        return self.loopType
+    
+    def SetLoopPlotProperties(self):
+        """
+        Sets the loop plot properties based on the currently selected tab (open/closed)
+        """
+        figure = self.scrollPlot.figure
+        ax = figure.get_axes()[0]
+        ax.set_ylim(0, 100)
+        if self.loopType == 0:
+            ax.set_xlim(-1, 0)
+            ax.set_title('Open Loop')
+        elif self.loopType == 1:
+            ax.set_xlim(-1, 0)
+            ax.set_title('Closed Loop')
+        self.scrollPlot.canvas.draw()
     
     def SetArmProperties(self, event=None):
         """
@@ -116,7 +142,8 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         # updates the arms moment of inertia based on the length and mass provided.  The value itself can be read using motor.M_a and motor.L_a
         self.motor.update_arm_mass(M_a) # updates the arm moment of inertia based on M_a and L_a
         self.motor.update_arm_length(L_a) # updates the arm moment of inertia based on M_a and L_a
-        self.closed_loop.angle_ref = np.deg2rad(angleInput)
+        # self.closed_loop.angle_ref = np.deg2rad(angleInput)
+        self.closed_loop.update_angle_ref(angleInput)
     
     def SetGravityProperties(self):
         self.motor.use_grav = self.gravitySetting  # 0 for no gravity 1 for with gravity
@@ -186,7 +213,8 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         """
         self.motor, self.open_loop, self.closed_loop = self.InitModel()
         self.SetMotorValues()
-        Animations.RotateMotorArm(self, self.startAngleInput.value())
+        Animations.RotateMotorArm(self, 0)
+        self.SetLoopPlotProperties()
         try:
             self.line.remove()
             self.scrollPlot.canvas.draw()
@@ -205,21 +233,25 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             figure = self.scrollPlot.figure
             ax = figure.get_axes()[0]
             ax.set_title('Open Loop')
+            ## original line:
+            # self.model_time.append(time.monotonic() - self.start_time)
+            self.model_time.append(self.motor.time)
             step_control = self.open_loop.step_control(i)
+            # print(i, self.motor.time)
             
-            # # Logging 
-            if self.motor.should_log:
-                self.open_loop.log_data()
-                
-            self.model_time.append(time.monotonic() - self.start_time)
+            # # # Logging 
+            # if self.motor.should_log:
+            #     self.open_loop.log_data()
+            
+            # print(self.motor.time)
             self.angle.append(step_control)
-            angle_deg = np.rad2deg(self.angle)
+            angle_deg = np.rad2deg(self.angle) % 360
             if self.line == []:
                self.line, = ax.plot(self.model_time, angle_deg, color='blue')
             else:
                 self.line.set_xdata(self.model_time)
                 self.line.set_ydata(angle_deg)
-            ax.set_xlim((self.model_time[-1]-10), self.model_time[-1])
+            ax.set_xlim((self.model_time[-1]-1), self.model_time[-1])
             ax.set_ylim(angle_deg.min(), angle_deg.max()+10)
             figure.canvas.draw()
             Animations.RotateMotorArm(self, angle_deg[-1])
@@ -237,17 +269,19 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
         pushed.
         """
         while self.closedRun == True:
+            ## original line:
+            # self.model_time.append(time.monotonic() - self.start_time)
+            self.model_time.append(self.motor.time)
             step_control = self.closed_loop.step_control()
             
-            # Logging 
-            if self.motor.should_log:
-                self.closed_loop.log_data()
+            # # Logging 
+            # if self.motor.should_log:
+            #     self.closed_loop.log_data()
                 
             figure = self.scrollPlot.figure
             ax = figure.get_axes()[0]
             ax.set_title('Closed Loop')
             
-            self.model_time.append(time.monotonic() - self.start_time)
             self.angle.append(step_control)
             angle_deg = np.rad2deg(self.angle)
             if self.line == []:
@@ -255,7 +289,7 @@ class EngWindow(QtWidgets.QMainWindow, windowUI):
             else:
                 self.line.set_xdata(self.model_time)
                 self.line.set_ydata(angle_deg)
-            ax.set_xlim((self.model_time[-1]-10), self.model_time[-1])
+            ax.set_xlim((self.model_time[-1]-1), self.model_time[-1])
             ax.set_ylim(0, angle_deg.max()+10)
             figure.canvas.draw()
             Animations.RotateMotorArm(self, angle_deg[-1])
@@ -306,6 +340,8 @@ class MotorArm:
         ax.set_axisbelow(True)
         ax.axis('scaled')
         figure.tight_layout()
+        ax.annotate('Angle: ', xy=(0,10), xytext=(-2, 10), size=16,
+                                     ha='left', va='top')
         self.motorArmPlot.canvas.draw()
         return self.motorArm
         
@@ -334,16 +370,17 @@ class MotorArm:
         Adds the current angle to the motor arm plot. Converts angle to
         scientific notation if the output is 5 digits or longer
         """
+        # make sure angle is between 0 and 360
+        angle = angle % 360
         angleStr = str(int(angle))
         if len(angleStr) >= 5:
             angleStr = '{:.2e}'.format(int(angle))
-        text = 'Angle: ' + angleStr
         try:
             self.angleText.remove()
         except:
             pass
-        self.angleText = ax.annotate(text, xy=(0,10), xytext=(0, 10), size=10,
-                                     ha='center', va='top')
+        self.angleText = ax.annotate(angleStr, xy=(0,10), xytext=(1, 10), size=16,
+                                     ha='right', va='top', color='blue')
         return self.angleText
 
 class LoopPlot:
@@ -364,7 +401,7 @@ class MatplotlibWidget(QtWidgets.QWidget):
         super(MatplotlibWidget, self).__init__(parent)
           
         # matplotlib.style.use('classic')
-        font = {'size': 12}
+        font = {'size': 10}
         matplotlib.rc('font', **font)
         self.figure = Figure(facecolor='white')
         self.canvas = FigureCanvas(self.figure)
@@ -373,7 +410,7 @@ class MatplotlibWidget(QtWidgets.QWidget):
         self.axis.set_ylabel('Angle (deg)')
         self.layoutVertical = QtWidgets.QVBoxLayout(self)
         self.layoutVertical.addWidget(self.canvas)
-        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding))
         self.canvas.draw()
         
 class Animations:
@@ -381,23 +418,22 @@ class Animations:
         """
         Calls functions to initialize the open/closed loop animations
         """
-        Animations.OpenLoopInit(self)
-        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlot, self.OpenLoopAnimate, interval=20)
-        Animations.ClosedLoopInit(self)
-        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlot, self.ClosedLoopAnimate, interval=20)
+        # Animations.OpenLoopInit(self)
+        self.openLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlot, self.OpenLoopAnimate, init_func=Animations.OpenLoopInit(self), interval=100)
+        # Animations.ClosedLoopInit(self)
+        self.closedLoopAnimation = matplotlib.animation.FuncAnimation(self.scrollPlot, self.ClosedLoopAnimate, init_func=Animations.ClosedLoopInit(self), interval=100)
         return self.openLoopAnimation, self.closedLoopAnimation
     
     def StartAnimation(self):
         self.ResetPlots.setEnabled(False)
         self.ResetPlotsClicked()
-        loopType = self.LoopControlTab.currentIndex()
-        if loopType == 0:
+        if self.loopType == 0:
             self.openRun = True
             self.closedRun = False
             Animations.OpenLoopInit(self)
             self.openLoopAnimation.event_source.start()
             self.closedLoopAnimation.event_source.stop()
-        elif loopType == 1:
+        elif self.loopType == 1:
             self.openRun = False
             self.closedRun = True
             Animations.ClosedLoopInit(self)
@@ -420,10 +456,10 @@ class Animations:
         figure = self.motorArmPlot.figure
         ax = figure.get_axes()[0]
         startAngle = self.startAngleInput.value()
-        updatedAngle = angleDeg + startAngle
+        updatedAngle = int(angleDeg + startAngle)
         angleRotate = matplotlib.transforms.Affine2D().rotate_deg_around(5,5, updatedAngle) + ax.transData
         self.motorArm.set_transform(angleRotate)
-        self.angleText = MotorArm.PlotAngleText(self, angleDeg, figure, ax)
+        self.angleText = MotorArm.PlotAngleText(self, updatedAngle, figure, ax)
         self.motorArmPlot.canvas.draw()
         return self.motorArm, self.angleText 
 
@@ -441,15 +477,18 @@ class Animations:
         figure = self.scrollPlot.figure
         figure.clear()
         ax = figure.add_subplot(111)
+        ax.grid()
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Angle (deg)')
-        ax.set_xlim(-10, 0)
+        ax.set_xlim(-1, 0)
         figure.canvas.draw()
         self.angle = [] 
         self.model_time = []
-        self.start_time = time.monotonic()
+        # self.start_time = time.monotonic()
         self.line = []
-        return self.start_time, self.angle, self.model_time, self.line
+        # self.motor.time = 0 - self.timestepInput.value()
+        # return self.start_time, self.angle, self.model_time, self.line
+        # return self.angle, self.model_time, self.line
 
     def ClosedLoopInit(self):
         """
@@ -466,15 +505,18 @@ class Animations:
         figure = self.scrollPlot.figure
         figure.clear()
         ax = figure.add_subplot(111)
+        ax.grid()
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Angle (deg)')
-        ax.set_xlim(-10, 0)
+        ax.set_xlim(-1, 0)
         figure.canvas.draw()
-        self.start_time = time.monotonic()
+        # self.start_time = time.monotonic()
         self.angle = [] 
         self.model_time = []
         self.line = []
-        return self.start_time, self.angle, self.model_time, self.line
+        # self.motor.time = 0 - self.timestepInput.value()
+        # return self.start_time, self.angle, self.model_time, self.line
+        # return self.angle, self.model_time, self.line
 
 class MenuWindows:
     def OpenHelpWindow(self):
@@ -488,8 +530,6 @@ class MenuWindows:
         self._subWindow.activateWindow()
         
     def OpenAboutDialog(self):
-        # aboutDialog = AboutDialog()
-        # aboutDialog.exec_()
         self._subWindow = AboutDialog()
         self._subWindow.show()
         self._subWindow.activateWindow()
@@ -500,12 +540,12 @@ class MenuWindows:
         """
         link = self.actionDebug_Mode
         if link.isChecked():
-            link.setText('Debug Mode: On')
+            link.setText('Precision Mode: On')
             self.DebugFrame.show()
             self.DecimalPrecision.setValue(1)
         else:
             self.DebugFrame.hide()
-            link.setText('Debug Mode: Off')
+            link.setText('Precision Mode: Off')
             MenuWindows.UpdateDecimalPrecision(self, 0)
             
             

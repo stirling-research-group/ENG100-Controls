@@ -94,6 +94,11 @@
           <string>Example Activities</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Definitions</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

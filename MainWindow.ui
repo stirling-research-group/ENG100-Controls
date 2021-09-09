@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
-    <height>927</height>
+    <width>1113</width>
+    <height>847</height>
    </rect>
   </property>
   <property name="font">
@@ -42,7 +42,7 @@
     <item row="0" column="1">
      <widget class="QFrame" name="RightPanel">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -436,7 +436,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0..136)</string>
+                 <string>(default: 0.136)</string>
                 </property>
                </widget>
               </item>
@@ -500,6 +500,9 @@
                 <property name="singleStep">
                  <double>0.001000000000000</double>
                 </property>
+                <property name="value">
+                 <double>0.050000000000000</double>
+                </property>
                </widget>
               </item>
               <item row="1" column="0">
@@ -550,7 +553,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0.001)</string>
+                 <string>(default: 0.05)</string>
                 </property>
                </widget>
               </item>
@@ -667,7 +670,7 @@
              </font>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <property name="elideMode">
              <enum>Qt::ElideNone</enum>
@@ -695,7 +698,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0.30)</string>
+                 <string>(default: 0.300)</string>
                 </property>
                </widget>
               </item>
@@ -704,6 +707,9 @@
                 <property name="autoFillBackground">
                  <bool>true</bool>
                 </property>
+                <property name="decimals">
+                 <number>3</number>
+                </property>
                 <property name="minimum">
                  <double>-50.000000000000000</double>
                 </property>
@@ -711,7 +717,7 @@
                  <double>50.000000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>0.010000000000000</double>
+                 <double>0.001000000000000</double>
                 </property>
                 <property name="value">
                  <double>0.300000000000000</double>
@@ -746,7 +752,7 @@
                  <double>0.100000000000000</double>
                 </property>
                 <property name="value">
-                 <double>5.000000000000000</double>
+                 <double>2.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -772,7 +778,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 5.00)</string>
+                 <string>(default: 2.00)</string>
                 </property>
                </widget>
               </item>
@@ -794,8 +800,13 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="font">
+                 <font>
+                  <pointsize>14</pointsize>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>I:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;K&lt;span style=&quot; vertical-align:sub;&quot;&gt;I &lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -807,8 +818,13 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="font">
+                 <font>
+                  <pointsize>14</pointsize>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>P:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;K&lt;span style=&quot; vertical-align:sub;&quot;&gt;P &lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -824,7 +840,7 @@
                  <double>0.010000000000000</double>
                 </property>
                 <property name="value">
-                 <double>0.500000000000000</double>
+                 <double>1.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -843,7 +859,7 @@
                  <double>0.001000000000000</double>
                 </property>
                 <property name="value">
-                 <double>0.050000000000000</double>
+                 <double>0.001000000000000</double>
                 </property>
                </widget>
               </item>
@@ -855,8 +871,13 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="font">
+                 <font>
+                  <pointsize>14</pointsize>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>D:</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;K&lt;span style=&quot; vertical-align:sub;&quot;&gt;D &lt;/span&gt;:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -866,16 +887,16 @@
                  <bool>true</bool>
                 </property>
                 <property name="decimals">
-                 <number>3</number>
+                 <number>5</number>
                 </property>
                 <property name="maximum">
                  <double>999.000000000000000</double>
                 </property>
                 <property name="singleStep">
-                 <double>0.001000000000000</double>
+                 <double>0.000010000000000</double>
                 </property>
                 <property name="value">
-                 <double>0.010000000000000</double>
+                 <double>0.000010000000000</double>
                 </property>
                </widget>
               </item>
@@ -888,7 +909,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0.50)</string>
+                 <string>(default: 1.00)</string>
                 </property>
                </widget>
               </item>
@@ -901,7 +922,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0.050)</string>
+                 <string>(default: 0.001)</string>
                 </property>
                </widget>
               </item>
@@ -914,7 +935,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>(default: 0.010)</string>
+                 <string>(default: 0.00001)</string>
                 </property>
                </widget>
               </item>
@@ -1006,15 +1027,10 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1070</width>
-     <height>23</height>
+     <width>1113</width>
+     <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuWindow_Resize_Options">
-    <property name="title">
-     <string>Window Resize Options</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
@@ -1029,12 +1045,11 @@
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
-     <string>Debug</string>
+     <string>Advanced</string>
     </property>
     <addaction name="actionDebug_Mode"/>
     <addaction name="actionLogging"/>
    </widget>
-   <addaction name="menuWindow_Resize_Options"/>
    <addaction name="menuHelp"/>
    <addaction name="menuAbout"/>
    <addaction name="menuDebug"/>
@@ -1055,7 +1070,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Debug Mode: Off</string>
+    <string>Precision Mode: Off</string>
    </property>
   </action>
   <action name="actionLogging">

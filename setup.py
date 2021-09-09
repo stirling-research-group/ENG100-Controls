@@ -6,14 +6,16 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-executables = [Executable('QtGUI.py', base=base, targetName='ENG100Controls.exe')]
+executables = [Executable('QtGUI.py', base=base, target_name='OpenClosedLoop.exe')]
 
-include_files = ['packages/mpl_toolkits',
-                 'Documentation/',
+include_files = ['help_files/',
+                 'packages/PyQt5',
+                 'AboutWindow.ui',
+                 'HelpWindow.ui',
+                 'MainWindow.ui',
+                 'Styling.qss',
                  'favicon.png']
-packages = ['matplotlib', 'numpy', 'pandas', 'PyQt5.QtCore', 'PyQt5.QtWidgets',
-            'PyQt5.uic', 'scipy', 'scipy.integrate', 'scipy.spatial.ckdtree',
-            'time']
+packages = ['matplotlib', 'mpl_toolkits', 'numpy', 'PyQt5', 'scipy', 'scipy.integrate', 'scipy.spatial.ckdtree', 'time']
 options = {
     'build_exe': {    
         'packages': packages, 
@@ -23,7 +25,7 @@ options = {
 }
 
 setup(
-    name = 'ENG100 Controls',
+    name = 'Open and Closed Loop GUI',
     options = options,
     version = '1.0',
     description = '',
