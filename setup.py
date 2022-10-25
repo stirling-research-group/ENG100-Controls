@@ -27,7 +27,7 @@ options = {
 setup(
     name = 'Open and Closed Loop GUI',
     options = options,
-    version = '1.0',
+    version = '2.0',
     description = '',
     executables = executables
 )

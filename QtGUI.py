@@ -1,5 +1,5 @@
 from ControlsGuiModel import SystemModel, OpenLoopControl, ClosedLoopControl
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtCore, QtWebEngineWidgets, QtWidgets, uic
 import matplotlib
 from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.collections import PatchCollection
